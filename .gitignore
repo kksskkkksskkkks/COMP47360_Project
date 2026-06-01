@@ -1,0 +1,21 @@
+# Environment variables
+#.env
+#nginx/certs/
+
+# IDE files
+*.iml
+.idea/
+
+#dbinfo.py
+
+.vscode/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.coverage
+
+# machine_learning
+
+ML/tlc_2025/
