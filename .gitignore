@@ -19,3 +19,6 @@ __pycache__/
 # machine_learning
 
 ML/tlc_2025/
+ML/raw/
+#ML/output/*.csv
+ML/output/
