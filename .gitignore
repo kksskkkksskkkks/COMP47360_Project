@@ -22,3 +22,6 @@ ML/tlc_2025/
 ML/raw/
 #ML/output/*.csv
 ML/output/
+ML/describe/
+ML/catboost_info/
+
