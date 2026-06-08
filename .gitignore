@@ -31,3 +31,5 @@ ML/catboost_info/
 #Data
 Data/describe/
 Data/output/
+
+config.py
