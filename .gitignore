@@ -2,6 +2,9 @@
 #.env
 #nginx/certs/
 
+.env
+*.env
+
 # IDE files
 *.iml
 .idea/
@@ -17,5 +20,17 @@ __pycache__/
 .coverage
 
 # machine_learning
-
 ML/tlc_2025/
+ML/raw/
+#ML/output/*.csv
+ML/output/
+ML/describe/
+ML/catboost_info/
+
+
+#Data
+Data/describe/
+Data/output/
+
+
+config.py
