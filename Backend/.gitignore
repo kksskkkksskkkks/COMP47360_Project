@@ -1,2 +1,5 @@
 target/
 *.class
+
+
+GemFinder/src/main/resources/application.yml
