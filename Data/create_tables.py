@@ -10,6 +10,8 @@ Usage:
 """
 
 import sys
+from sqlalchemy.dialects.mysql import TINYINT
+
 from sqlalchemy import (
     create_engine,
     MetaData,
@@ -67,7 +69,7 @@ attractions = Table(
            comment="Raw OSM opening hours format"),
     Column("opening_hours_source",   String(32),  nullable=True,
            comment="osm | manual"),
-    Column("wheelchair",             Boolean,     nullable=False, server_default=text("FALSE"),
+    Column("wheelchair",             TINYINT,     nullable=False, server_default=text("FALSE"),
            comment="Wheelchair accessibility flag from OSM"),
     Column("avg_rating",             Float,       nullable=False, server_default=text("0.0"),
            comment="Current average rating, maintained by database triggers"),

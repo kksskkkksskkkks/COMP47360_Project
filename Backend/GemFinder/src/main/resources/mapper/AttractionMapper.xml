@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gemfinder.mapper.AttractionMapper">
+
+    <!-- ── Result map ──────────────────────────────────────────────────────── -->
+    <!--
+        Explicit result map is not strictly required because
+        map-underscore-to-camel-case is enabled, but having it here makes
+        the column → field mapping visible and easy to extend.
+    -->
+    <resultMap id="AttractionRM" type="com.gemfinder.entity.Attraction">
+        <id     column="id"                       property="id"/>
+        <result column="osm_id"                   property="osmId"/>
+        <result column="name"                     property="name"/>
+        <result column="category"                 property="category"/>
+        <result column="osm_group"                property="osmGroup"/>
+        <result column="lat"                      property="lat"/>
+        <result column="lon"                      property="lon"/>
+        <result column="opening_hours"            property="openingHours"/>
+        <result column="opening_hours_source"     property="openingHoursSource"/>
+        <result column="wheelchair"               property="wheelchair"/>
+        <result column="avg_rating"               property="avgRating"/>
+        <result column="rating_count"             property="ratingCount"/>
+        <result column="zone_id"                  property="zoneId"/>
+        <result column="suggested_duration_min"   property="suggestedDurationMin"/>
+        <result column="image_path"               property="imagePath"/>
+        <result column="image_source"             property="imageSource"/>
+        <result column="image_is_fallback"        property="imageIsFallback"/>
+        <result column="created_at"               property="createdAt"/>
+        <result column="updated_at"               property="updatedAt"/>
+    </resultMap>
+
+    <!-- ── Reusable WHERE clause fragment ──────────────────────────────────── -->
+    <!--
+        categories: multi-select, uses IN (...) when one or more values are supplied.
+        wheelchair: 2=yes, 1=limited, 0=no; filter activates when wheelchair=1 is passed,
+                    returning rows where wheelchair >= 1 (limited or fully accessible).
+    -->
+    <sql id="whereFilters">
+        <where>
+            <if test="q.categories != null and !q.categories.isEmpty()">
+                AND category IN
+                <foreach item="cat" collection="q.categories"
+                         open="(" separator="," close=")">
+                    #{cat}
+                </foreach>
+            </if>
+            <if test="q.wheelchair != null and q.wheelchair == 1">
+                AND wheelchair >= 1
+            </if>
+        </where>
+    </sql>
+
+    <!-- ── findAll ─────────────────────────────────────────────────────────── -->
+    <!--
+        Returns one page of attractions matching the filters, ordered by avg_rating DESC.
+        Offset = (page - 1) * size, computed inline via OGNL to avoid an extra parameter.
+    -->
+    <select id="findAll" resultMap="AttractionRM">
+        SELECT *
+        FROM   attractions
+        <include refid="whereFilters"/>
+        ORDER BY avg_rating DESC
+        LIMIT  #{q.size}
+        OFFSET ${(q.page - 1) * q.size}
+    </select>
+
+    <!-- ── countAll ────────────────────────────────────────────────────────── -->
+    <!-- Runs the same WHERE clause so the total count matches the filtered list. -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM   attractions
+        <include refid="whereFilters"/>
+    </select>
+
+    <!-- ── findById ────────────────────────────────────────────────────────── -->
+    <select id="findById" resultMap="AttractionRM">
+        SELECT *
+        FROM   attractions
+        WHERE  id = #{id}
+    </select>
+
+    <!-- ── findAllCategories ───────────────────────────────────────────────── -->
+    <!-- Returns all distinct category values sorted alphabetically for the filter UI. -->
+    <select id="findAllCategories" resultType="string">
+        SELECT DISTINCT category
+        FROM   attractions
+        ORDER BY category ASC
+    </select>
+
+</mapper>
