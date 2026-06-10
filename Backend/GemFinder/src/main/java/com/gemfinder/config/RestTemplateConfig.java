@@ -8,17 +8,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
 
-//@Configuration
-//public class RestTemplateConfig {
-//
-//    @Bean("flaskRestTemplate")
-//    public RestTemplate flaskRestTemplate() {
-//        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-//        factory.setConnectTimeout(5000);   // 5s
-//        factory.setReadTimeout(10000);     // 10s
-//        return new RestTemplate(factory);
-//    }
-//}
 
 
 @Configuration
