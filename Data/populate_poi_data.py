@@ -36,13 +36,10 @@ COLUMN_MAP = {
     "suggested_duration": "suggested_duration_min",
 }
 
-# Nothing skipped — avg_rating and rating_count are synthetic seed data
-# generated in the notebook (Section 8), not trigger-managed user ratings.
-# We write them directly as initial values.
 SKIP_COLUMNS = set()
 
-FLOAT_COLUMNS      = {"lat", "lon", "avg_rating"}
-INT_COLUMNS        = {"zone_id", "suggested_duration_min", "rating_count"}
+FLOAT_COLUMNS      = {"lat", "lon", "avg_rating", "original_avg_rating"}
+INT_COLUMNS        = {"zone_id", "suggested_duration_min", "rating_count", "original_rating_count"}
 WHEELCHAIR_COLUMNS = {"wheelchair"}
 
 # wheelchair TINYINT: yes → 2, limited → 1, no/other → 0
@@ -82,7 +79,16 @@ def build_row(csv_row: dict) -> dict | None:
         db_col = COLUMN_MAP.get(csv_col, csv_col)
         db_row[db_col] = coerce(db_col, raw_val)
 
-    return db_row if db_row.get("osm_id") else None
+    if not db_row.get("osm_id"):
+        return None
+
+    # Preserve original rating data — these values are never
+    # overwritten by refreshRatingStats; they serve as the baseline for
+    # the merged weighted average calculation.
+    db_row["original_avg_rating"]   = db_row.get("avg_rating") or 0.0
+    db_row["original_rating_count"] = db_row.get("rating_count") or 0
+
+    return db_row
 
 
 # ── insert ─────────────────────────────────────────────────────────────────
