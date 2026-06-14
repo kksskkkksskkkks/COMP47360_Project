@@ -1,6 +1,7 @@
-package com.gemfinder.auth.dto;
+package com.gemfinder.admin.dto;
 
-import com.gemfinder.auth.entity.User.Role;
+//import com.gemfinder.admin.entity.User.Role;
+import com.gemfinder.enums.Role;
 import lombok.Data;
 
 import java.time.Instant;

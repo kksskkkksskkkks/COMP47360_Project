@@ -1,5 +1,6 @@
-package com.gemfinder.auth.entity;
+package com.gemfinder.admin.entity;
 
+import com.gemfinder.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -19,7 +20,7 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 public class User {
 
-    public enum Role { USER, ADMIN,SUPERADMIN }
+//    public enum Role { USER, ADMIN,SUPERADMIN }
 
     @EqualsAndHashCode.Include
     @Id

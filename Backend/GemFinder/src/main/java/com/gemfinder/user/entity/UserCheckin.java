@@ -1,6 +1,6 @@
 package com.gemfinder.user.entity;
 
-import com.gemfinder.auth.entity.User;
+import com.gemfinder.admin.entity.User;
 import com.gemfinder.attractions.entity.Attraction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
