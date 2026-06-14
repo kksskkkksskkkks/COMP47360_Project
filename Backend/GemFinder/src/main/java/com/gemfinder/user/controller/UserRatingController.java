@@ -65,3 +65,4 @@ public class UserRatingController {
         userRatingService.delete(userId, attractionId);
     }
 }
+
