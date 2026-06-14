@@ -1,7 +1,7 @@
-package com.gemfinder.auth.mapper;
+package com.gemfinder.admin.mapper;
 
-import com.gemfinder.auth.dto.UserDTO;
-import com.gemfinder.auth.entity.User;
+import com.gemfinder.admin.dto.UserDTO;
+import com.gemfinder.admin.entity.User;
 
 public class UserMapper {
 
