@@ -42,3 +42,4 @@ public class UserCheckinController {
         return ApiResponse.success(userCheckinService.checkin(userId, attractionId, request));
     }
 }
+
