@@ -67,12 +67,21 @@ public class Attraction {
     @Column(nullable = false)
     private Integer wheelchair = 0;
 
+    // Merged value (original + user ratings) — updated by refreshRatingStats
     @Column(name = "avg_rating", nullable = false)
     private Double avgRating = 0.0;
 
     @PositiveOrZero
     @Column(name = "rating_count", nullable = false)
     private Integer ratingCount = 0;
+
+    // Preserved original values from OSM/Google import — never overwritten
+    @Column(name = "original_avg_rating", nullable = false)
+    private Double originalAvgRating = 0.0;
+
+    @PositiveOrZero
+    @Column(name = "original_rating_count", nullable = false)
+    private Integer originalRatingCount = 0;
 
     @NotNull
     @Column(name = "zone_id", nullable = false)

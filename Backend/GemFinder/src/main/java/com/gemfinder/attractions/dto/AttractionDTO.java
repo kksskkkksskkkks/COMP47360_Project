@@ -17,8 +17,15 @@ public class AttractionDTO {
     private String openingHours;
     private String openingHoursSource;
     private Integer wheelchair;
+
+    // Merged avg rating (original + user ratings)
     private Double avgRating;
     private Integer ratingCount;
+
+    // Original values from OSM/Google import
+    private Double originalAvgRating;
+    private Integer originalRatingCount;
+
     private Integer zoneId;
     private Integer suggestedDurationMin;
     private String imagePath;
