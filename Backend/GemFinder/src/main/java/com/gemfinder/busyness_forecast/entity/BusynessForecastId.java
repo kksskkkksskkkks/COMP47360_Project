@@ -1,4 +1,4 @@
-package com.gemfinder.heat_map.entity;
+package com.gemfinder.busyness_forecast.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.*;
