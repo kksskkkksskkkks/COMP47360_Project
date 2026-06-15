@@ -7,7 +7,13 @@ import lombok.Data;
 @AllArgsConstructor
 public class ProfileMapPointDTO {
 
+    private Long attractionId;
+    private Integer zoneId;
+    private Double avgRating;
+    private String imagePath;
     private Double lat;
     private Double lon;
     private Long checkinCount;
+    private String name;
+    private String category;
 }

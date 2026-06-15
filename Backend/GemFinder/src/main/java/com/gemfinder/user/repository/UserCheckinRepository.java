@@ -23,13 +23,27 @@ public interface UserCheckinRepository extends JpaRepository<UserCheckin, Long> 
     @Query("""
 
             SELECT new com.gemfinder.profile_map.dto.ProfileMapPointDTO(
+            c.attraction.id,
+            c.attraction.zoneId,
+            c.attraction.avgRating,
+            c.attraction.imagePath,
             c.attraction.lat,
             c.attraction.lon,
-            COUNT(c)
+            COUNT(c),
+            c.attraction.name,
+            c.attraction.category
         )
         FROM UserCheckin c
         WHERE c.user.id = :userId
-        GROUP BY c.attraction.lat, c.attraction.lon
+        GROUP BY
+            c.attraction.id,
+            c.attraction.zoneId,
+            c.attraction.avgRating,
+            c.attraction.imagePath,
+            c.attraction.lat,
+            c.attraction.lon,
+            c.attraction.name,
+            c.attraction.category
         """)
     List<ProfileMapPointDTO> findProfileMapPointsByUserId(@Param("userId") Long userId);
     }
