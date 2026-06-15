@@ -60,7 +60,7 @@ public class BusynessForecastServiceImpl implements BusynessForecastService {
         LocalDateTime slot = floorToSlot(timeBucket);
 
         return forecastRepository.findByZoneIdAndTimeBucket(zoneId, slot)
-                .map(BusynessForecastMapper::toDTO)
+                .map(BusynessForecastDTO -> BusynessForecastMapper.toDTO(BusynessForecastDTO))
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "No forecast for zone=" + zoneId + " slot=" + slot));
     }
