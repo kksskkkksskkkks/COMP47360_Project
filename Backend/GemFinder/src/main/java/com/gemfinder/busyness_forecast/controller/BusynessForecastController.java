@@ -20,10 +20,10 @@ public class BusynessForecastController {
     // GET /api/busyness?zoneId=1&timeBucket=2026-06-15T14:00:00
     // Single slot — DB first, Flask fallback
     @GetMapping
-    public BusynessForecastDTO getForecast(
+    public ApiResponse<BusynessForecastDTO> getForecast(
             @RequestParam Integer zoneId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timeBucket) {
-        return busynessForecastService.getForecast(zoneId, timeBucket);
+        return ApiResponse.success(busynessForecastService.getForecast(zoneId, timeBucket));
     }
 
 //    // GET /api/busyness/{zoneId}/48h
@@ -47,8 +47,8 @@ public class BusynessForecastController {
     // GET /api/busyness/snapshot?timeBucket=2026-06-15T14:00:00
     // All zones at a given time (for heatmap rendering)
     @GetMapping("/snapshot")
-    public List<BusynessForecastDTO> getAllZonesAtTime(
+    public ApiResponse<List<BusynessForecastDTO>> getAllZonesAtTime(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timeBucket) {
-        return busynessForecastService.getAllZonesAtTime(timeBucket);
+        return ApiResponse.success(busynessForecastService.getAllZonesAtTime(timeBucket));
     }
 }
