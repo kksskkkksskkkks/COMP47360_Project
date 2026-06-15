@@ -1,4 +1,4 @@
-package com.gemfinder.heat_map.dto;
+package com.gemfinder.busyness_forecast.dto;
 
 import lombok.Data;
 
