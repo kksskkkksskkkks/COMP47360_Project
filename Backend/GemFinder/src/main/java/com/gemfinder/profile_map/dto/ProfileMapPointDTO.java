@@ -1,11 +1,11 @@
-package com.gemfinder.heat_map.dto;
+package com.gemfinder.profile_map.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class HeatmapPointDTO {
+public class ProfileMapPointDTO {
 
     private Double lat;
     private Double lon;
