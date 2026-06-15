@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 
 # ── hardcoded CSV path ─────────────────────────────────────────────────────
-CSV_PATH = "output/attractions_final.csv"
+CSV_PATH = "output/attractions_final_v2.csv"
 
 # ── database connection ────────────────────────────────────────────────────
 _DB = {
