@@ -18,7 +18,7 @@ public class BusynessForecastController {
     private final BusynessForecastService busynessForecastService;
 
     // GET /api/busyness?zoneId=1&timeBucket=2026-06-15T14:00:00
-    // Single slot — DB first, Flask fallback
+    // Single slot — DB
     @GetMapping
     public ApiResponse<BusynessForecastDTO> getForecast(
             @RequestParam Integer zoneId,
