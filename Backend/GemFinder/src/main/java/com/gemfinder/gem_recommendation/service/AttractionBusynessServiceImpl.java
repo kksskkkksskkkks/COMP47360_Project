@@ -64,7 +64,6 @@ public class AttractionBusynessServiceImpl implements AttractionBusynessService 
 
             result.add(new AttractionBusynessSlotDTO(
                     cursor,
-                    cursor.plusMinutes(30),
                     forecast != null ? forecast.getPredictedDropoffs() : 0.0,
                     forecast != null ? forecast.getBusynessLevel() : (short) 3,
                     gemSlots.contains(finalCursor)

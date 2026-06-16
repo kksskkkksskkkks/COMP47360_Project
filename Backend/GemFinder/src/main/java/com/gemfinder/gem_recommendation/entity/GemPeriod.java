@@ -46,10 +46,6 @@ public class GemPeriod {
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    @NotNull
-    @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
-
     // 1-5 busyness level — used for colour coding on the chart
     @NotNull
     @Min(1) @Max(5)

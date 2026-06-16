@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 public class AttractionBusynessSlotDTO {
 
     private LocalDateTime startTime;
-    private LocalDateTime endTime;
     private Double predictedDropoffs;
     private Short busynessLevel;
-    private Boolean isGem; // true = high rating + low busyness (highlighted on chart)
+    private Boolean isGem;
 }

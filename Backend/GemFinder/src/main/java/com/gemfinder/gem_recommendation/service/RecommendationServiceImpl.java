@@ -12,7 +12,6 @@ import com.gemfinder.gem_recommendation.service.RecommendationService;
 import com.gemfinder.util.OpeningHoursUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +31,6 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final GemPeriodRepository gemPeriodRepository;
     private final AttractionRepository attractionRepository;
     private final BusynessForecastService busynessForecastService;
-    private final JdbcTemplate jdbcTemplate;
 
     // ── Read: recommendations ──────────────────────────────────────
 
@@ -77,11 +75,16 @@ public class RecommendationServiceImpl implements RecommendationService {
     // ── Write: generate and persist gem periods ────────────────────
 
     @Override
+    @Transactional
     public void generateAndSave() {
         log.info("Generating gem periods...");
 
         LocalDate today    = LocalDate.now();
         LocalDate tomorrow = today.plusDays(1);
+
+        // Delete today and tomorrow's existing data before regenerating
+        gemPeriodRepository.deleteByForecastDateBefore(tomorrow.plusDays(1));
+        log.info("Deleted existing gem periods for {} and {}", today, tomorrow);
 
         // 1. Compute 75th percentile of avgRating dynamically
         double ratingThreshold = computeRatingP75();
@@ -100,7 +103,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 buildBusynessLookup(from, to);
 
         // 4. Build gem periods — only slots where busynessLevel <= threshold
-        List<Object[]> toSave = new ArrayList<>();
+        List<GemPeriod> toSave = new ArrayList<>();
 
         for (LocalDate date : List.of(today, tomorrow)) {
             List<LocalDateTime> slots = generateSlots(date);
@@ -113,45 +116,22 @@ public class RecommendationServiceImpl implements RecommendationService {
                     BusynessForecastDTO forecast = zoneMap.get(a.getZoneId());
                     short busynessLevel = forecast != null ? forecast.getBusynessLevel() : 3;
 
-                    // Only store slots where the attraction is not busy
                     if (busynessLevel <= BUSYNESS_THRESHOLD) {
-                        toSave.add(new Object[]{
-                                a.getId(),
-                                slot,
-                                slot.plusMinutes(30),
-                                busynessLevel,
-                                forecast != null ? forecast.getPredictedDropoffs() : 0.0,
-                                date
-                        });
+                        GemPeriod period = new GemPeriod();
+                        period.setAttraction(a);
+                        period.setStartTime(slot);
+                        period.setBusynessLevel(busynessLevel);
+                        period.setPredictedDropoffs(forecast != null ? forecast.getPredictedDropoffs() : 0.0);
+                        period.setForecastDate(date);
+                        toSave.add(period);
                     }
                 }
             }
         }
 
-        log.info("Gem periods to upsert: {}", toSave.size());
-
-        // 5. Batch upsert
-        String sql = """
-                INSERT INTO gem_periods
-                    (attraction_id, start_time, end_time, busyness_level,
-                     predicted_dropoffs, forecast_date, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE
-                    busyness_level     = VALUES(busyness_level),
-                    predicted_dropoffs = VALUES(predicted_dropoffs),
-                    forecast_date      = VALUES(forecast_date)
-                """;
-
-        jdbcTemplate.batchUpdate(sql, toSave, 500, (ps, row) -> {
-            ps.setLong(1,   (Long)          row[0]);
-            ps.setObject(2,                 row[1]); // start_time
-            ps.setObject(3,                 row[2]); // end_time
-            ps.setShort(4,  (Short)         row[3]);
-            ps.setDouble(5, (Double)        row[4]);
-            ps.setObject(6,                 row[5]); // forecast_date
-        });
-
-        log.info("Upserted {} gem periods for {} and {}", toSave.size(), today, tomorrow);
+        log.info("Gem periods to save: {}", toSave.size());
+        gemPeriodRepository.saveAll(toSave);
+        log.info("Saved {} gem periods for {} and {}", toSave.size(), today, tomorrow);
 
         // 6. Delete old gem periods that no longer qualify
         //    (attraction may have dropped below P75 threshold)
