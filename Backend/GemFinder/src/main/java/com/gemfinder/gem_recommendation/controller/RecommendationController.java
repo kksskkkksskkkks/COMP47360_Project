@@ -4,7 +4,10 @@ import com.gemfinder.gem_recommendation.dto.RecommendationSlotDTO;
 import com.gemfinder.gem_recommendation.service.RecommendationService;
 import com.gemfinder.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,10 +18,9 @@ public class RecommendationController {
 
     private final RecommendationService recommendationService;
 
-    // GET /api/recommendations
-    // GET /api/recommendations?categories=Park,Museum
-    // GET /api/recommendations?wheelchair=1
-    // GET /api/recommendations?categories=Park&wheelchair=2
+    @Value("${gemfinder.internal.secret}")
+    private String internalSecret;
+
     @GetMapping
     public ApiResponse<List<RecommendationSlotDTO>> getRecommendations(
             @RequestParam(required = false) List<String> categories,
@@ -26,9 +28,12 @@ public class RecommendationController {
         return ApiResponse.success(recommendationService.getRecommendations(categories, wheelchair));
     }
 
-    // POST /api/recommendations/generate  (manual trigger for testing)
     @PostMapping("/generate")
-    public ApiResponse<Void> generate() {
+    public ApiResponse<Void> generate(
+            @RequestHeader("X-Internal-Secret") String secret) {
+        if (!internalSecret.equals(secret)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         recommendationService.generateAndSave();
         return ApiResponse.success(null);
     }

@@ -57,7 +57,8 @@ WX_LAT         = WEATHER_CONFIG['latitude']
 WX_LON         = WEATHER_CONFIG['longitude']
 WX_TZ          = WEATHER_CONFIG['timezone']
 
-GEM_GENERATE_URL = 'http://localhost:8080/api/recommendations/generate'
+GEM_GENERATE_URL    = 'http://localhost:8080/api/recommendations/generate'
+GEM_INTERNAL_SECRET = os.environ.get('INTERNAL_SECRET', 'dev-secret-change-in-prod')
 
 # ── Model & features ────────────────────────────────────────────────
 model = lgb.Booster(model_file=os.path.join(BASE_DIR, '../ML/output/lgb_model.txt'))
@@ -270,7 +271,11 @@ def trigger_gem_generation():
     """Calls Spring Boot to regenerate gem periods after busyness data is ready."""
     try:
         log.info("Triggering gem period generation...")
-        resp = requests.post(GEM_GENERATE_URL, timeout=300)
+        resp = requests.post(
+            GEM_GENERATE_URL,
+            headers={"X-Internal-Secret": GEM_INTERNAL_SECRET},
+            timeout=300
+        )
         if resp.status_code == 200:
             log.info("Gem generation completed successfully")
         else:
