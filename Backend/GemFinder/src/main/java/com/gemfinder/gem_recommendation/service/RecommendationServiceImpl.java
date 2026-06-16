@@ -16,8 +16,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,13 +27,14 @@ import java.util.stream.Collectors;
 public class RecommendationServiceImpl implements RecommendationService {
 
     private static final int ATTRACTIONS_PER_SLOT = 3;
+    private static final int BUSYNESS_THRESHOLD   = 2; // <= 2 = not busy
 
     private final GemPeriodRepository gemPeriodRepository;
     private final AttractionRepository attractionRepository;
     private final BusynessForecastService busynessForecastService;
     private final JdbcTemplate jdbcTemplate;
 
-    // ── Read: return recommendations ───────────────────────────────
+    // ── Read: recommendations ──────────────────────────────────────
 
     @Override
     @Transactional(readOnly = true)
@@ -62,7 +61,8 @@ public class RecommendationServiceImpl implements RecommendationService {
                         Boolean open = OpeningHoursUtil.isOpen(p.getAttraction().getOpeningHours(), slot);
                         return open == null || open;
                     })
-                    .sorted(Comparator.comparing(GemPeriod::getGemScore).reversed())
+                    .sorted(Comparator.comparingDouble(
+                            p -> -p.getAttraction().getAvgRating()))
                     .limit(ATTRACTIONS_PER_SLOT)
                     .map(this::toDTO)
                     .toList();
@@ -83,107 +83,127 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDate today    = LocalDate.now();
         LocalDate tomorrow = today.plusDays(1);
 
-        List<Attraction> attractions = attractionRepository.findAll();
+        // 1. Compute 75th percentile of avgRating dynamically
+        double ratingThreshold = computeRatingP75();
+        log.info("Rating P75 threshold: {}", ratingThreshold);
 
-        // Fetch ALL busyness data in ONE query — always cover full day from midnight
+        // 2. Filter attractions above threshold
+        List<Attraction> qualifiedAttractions = attractionRepository.findAll().stream()
+                .filter(a -> a.getAvgRating() != null && a.getAvgRating() >= ratingThreshold)
+                .toList();
+        log.info("Qualified attractions (avgRating >= {}): {}", ratingThreshold, qualifiedAttractions.size());
+
+        // 3. Fetch ALL busyness data in ONE query
         LocalDateTime from = today.atStartOfDay();
         LocalDateTime to   = tomorrow.plusDays(1).atStartOfDay();
+        Map<LocalDateTime, Map<Integer, BusynessForecastDTO>> busynessLookup =
+                buildBusynessLookup(from, to);
 
-        Map<LocalDateTime, Map<Integer, Short>> busynessLookup = buildBusynessLookup(from, to);
-
-        List<GemPeriod> toSave = new ArrayList<>();
+        // 4. Build gem periods — only slots where busynessLevel <= threshold
+        List<Object[]> toSave = new ArrayList<>();
 
         for (LocalDate date : List.of(today, tomorrow)) {
             List<LocalDateTime> slots = generateSlots(date);
 
             for (LocalDateTime slot : slots) {
-                Map<Integer, Short> zoneMap = busynessLookup.getOrDefault(slot, Map.of());
+                Map<Integer, BusynessForecastDTO> zoneMap =
+                        busynessLookup.getOrDefault(slot, Map.of());
 
-                for (Attraction a : attractions) {
-                    short busynessLevel  = zoneMap.getOrDefault(a.getZoneId(), (short) 3);
-                    double avgRating     = a.getAvgRating() != null ? a.getAvgRating() : 0.0;
-                    double ratingScore   = avgRating / 5.0;
-                    double busynessScore = (6.0 - busynessLevel) / 5.0;
-                    double finalScore    = (ratingScore + busynessScore) / 2.0;
+                for (Attraction a : qualifiedAttractions) {
+                    BusynessForecastDTO forecast = zoneMap.get(a.getZoneId());
+                    short busynessLevel = forecast != null ? forecast.getBusynessLevel() : 3;
 
-                    GemPeriod period = new GemPeriod();
-                    period.setAttraction(a);
-                    period.setStartTime(slot);
-                    period.setEndTime(slot.plusMinutes(30));
-                    period.setBusynessLevel(busynessLevel);
-                    period.setGemScore(BigDecimal.valueOf(finalScore).setScale(2, RoundingMode.HALF_UP));
-                    period.setForecastDate(date);
-                    toSave.add(period);
+                    // Only store slots where the attraction is not busy
+                    if (busynessLevel <= BUSYNESS_THRESHOLD) {
+                        toSave.add(new Object[]{
+                                a.getId(),
+                                slot,
+                                slot.plusMinutes(30),
+                                busynessLevel,
+                                forecast != null ? forecast.getPredictedDropoffs() : 0.0,
+                                date
+                        });
+                    }
                 }
             }
         }
 
-        // Batch upsert via JDBC — much faster than per-row JPA calls
+        log.info("Gem periods to upsert: {}", toSave.size());
+
+        // 5. Batch upsert
         String sql = """
                 INSERT INTO gem_periods
-                    (attraction_id, start_time, end_time, busyness_level, gem_score, forecast_date, created_at)
+                    (attraction_id, start_time, end_time, busyness_level,
+                     predicted_dropoffs, forecast_date, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, NOW())
                 ON DUPLICATE KEY UPDATE
-                    busyness_level = VALUES(busyness_level),
-                    gem_score      = VALUES(gem_score),
-                    forecast_date  = VALUES(forecast_date)
+                    busyness_level     = VALUES(busyness_level),
+                    predicted_dropoffs = VALUES(predicted_dropoffs),
+                    forecast_date      = VALUES(forecast_date)
                 """;
 
-        jdbcTemplate.batchUpdate(sql, toSave, 500, (ps, period) -> {
-            ps.setLong(1, period.getAttraction().getId());
-            ps.setObject(2, period.getStartTime());
-            ps.setObject(3, period.getEndTime());
-            ps.setShort(4, period.getBusynessLevel());
-            ps.setBigDecimal(5, period.getGemScore());
-            ps.setObject(6, period.getForecastDate());
+        jdbcTemplate.batchUpdate(sql, toSave, 500, (ps, row) -> {
+            ps.setLong(1,   (Long)          row[0]);
+            ps.setObject(2,                 row[1]); // start_time
+            ps.setObject(3,                 row[2]); // end_time
+            ps.setShort(4,  (Short)         row[3]);
+            ps.setDouble(5, (Double)        row[4]);
+            ps.setObject(6,                 row[5]); // forecast_date
         });
 
         log.info("Upserted {} gem periods for {} and {}", toSave.size(), today, tomorrow);
 
-        // Only delete data older than yesterday
+        // 6. Delete old gem periods that no longer qualify
+        //    (attraction may have dropped below P75 threshold)
         gemPeriodRepository.deleteByForecastDateBefore(today);
         log.info("Deleted stale gem periods before {}", today);
     }
 
     // ── Private helpers ────────────────────────────────────────────
 
-    private Map<LocalDateTime, Map<Integer, Short>> buildBusynessLookup(LocalDateTime from,
-                                                                        LocalDateTime to) {
+    /** Computes the 75th percentile of avgRating across all attractions. */
+    private double computeRatingP75() {
+        List<Double> ratings = attractionRepository.findAll().stream()
+                .map(Attraction::getAvgRating)
+                .filter(Objects::nonNull)
+                .sorted()
+                .toList();
+
+        if (ratings.isEmpty()) return 0.0;
+        int index = (int) Math.ceil(ratings.size() * 0.75) - 1;
+        return ratings.get(Math.min(index, ratings.size() - 1));
+    }
+
+    private Map<LocalDateTime, Map<Integer, BusynessForecastDTO>> buildBusynessLookup(
+            LocalDateTime from, LocalDateTime to) {
         List<BusynessForecastDTO> forecasts = busynessForecastService.getAllZonesInRange(from, to);
-        Map<LocalDateTime, Map<Integer, Short>> lookup = new HashMap<>();
+        Map<LocalDateTime, Map<Integer, BusynessForecastDTO>> lookup = new HashMap<>();
         for (BusynessForecastDTO f : forecasts) {
             lookup.computeIfAbsent(f.getTimeBucket(), k -> new HashMap<>())
-                    .put(f.getZoneId(), f.getBusynessLevel());
+                    .put(f.getZoneId(), f);
         }
         return lookup;
     }
 
     private List<GemPeriod> fetchPeriods(LocalDate today, LocalDate tomorrow,
                                          List<String> categories, Integer wheelchair) {
-        List<GemPeriod> result = new ArrayList<>();
-        for (LocalDate date : List.of(today, tomorrow)) {
-            if (categories != null && !categories.isEmpty() && wheelchair != null) {
-                result.addAll(gemPeriodRepository
-                        .findByForecastDateAndCategoriesAndWheelchair(date, categories, wheelchair));
-            } else if (categories != null && !categories.isEmpty()) {
-                result.addAll(gemPeriodRepository
-                        .findByForecastDateAndCategories(date, categories));
-            } else if (wheelchair != null) {
-                result.addAll(gemPeriodRepository
-                        .findByForecastDateAndWheelchair(date, wheelchair));
-            } else {
-                result.addAll(gemPeriodRepository
-                        .findByForecastDateOrderByStartTimeAscGemScoreDesc(date));
-            }
+        List<LocalDate> dates = List.of(today, tomorrow);
+
+        if (categories != null && !categories.isEmpty() && wheelchair != null) {
+            return gemPeriodRepository.findByForecastDatesAndCategoriesAndWheelchair(
+                    dates, categories, wheelchair);
+        } else if (categories != null && !categories.isEmpty()) {
+            return gemPeriodRepository.findByForecastDatesAndCategories(dates, categories);
+        } else if (wheelchair != null) {
+            return gemPeriodRepository.findByForecastDatesAndWheelchair(dates, wheelchair);
+        } else {
+            return gemPeriodRepository.findByForecastDatesOrderByStartTimeAscAvgRatingDesc(dates);
         }
-        return result;
     }
 
     private List<LocalDateTime> generateSlots(LocalDate date) {
-        // Always generate full day from midnight — frontend filters past slots on display
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end   = date.plusDays(1).atStartOfDay();
-
         List<LocalDateTime> slots = new ArrayList<>();
         LocalDateTime cursor = start;
         while (cursor.isBefore(end)) {
@@ -208,7 +228,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         dto.setImagePath(a.getImagePath());
         dto.setWheelchair(a.getWheelchair());
         dto.setBusynessLevel(p.getBusynessLevel());
-        dto.setGemScore(p.getGemScore());
+        dto.setPredictedDropoffs(p.getPredictedDropoffs());
         return dto;
     }
 }

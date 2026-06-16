@@ -2,8 +2,6 @@ package com.gemfinder.gem_recommendation.dto;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 @Data
 public class RecommendedAttractionDTO {
 
@@ -19,5 +17,5 @@ public class RecommendedAttractionDTO {
     private String imagePath;
     private Integer wheelchair;
     private Short busynessLevel;
-    private BigDecimal gemScore;
+    private Double predictedDropoffs;
 }
