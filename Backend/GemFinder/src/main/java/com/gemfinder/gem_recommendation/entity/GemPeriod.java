@@ -7,7 +7,6 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "attraction")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(
@@ -51,15 +50,16 @@ public class GemPeriod {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
+    // 1-5 busyness level — used for colour coding on the chart
     @NotNull
-    @Min(0) @Max(5)
+    @Min(1) @Max(5)
     @Column(name = "busyness_level", nullable = false)
     private Short busynessLevel;
 
+    // Raw model output — used as Y-axis on the bar chart
     @NotNull
-    @Positive
-    @Column(name = "gem_score", nullable = false, precision = 5, scale = 2)
-    private BigDecimal gemScore;
+    @Column(name = "predicted_dropoffs", nullable = false)
+    private Double predictedDropoffs;
 
     @NotNull
     @Column(name = "forecast_date", nullable = false)

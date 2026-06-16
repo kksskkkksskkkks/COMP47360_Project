@@ -14,50 +14,65 @@ import java.util.List;
 @Repository
 public interface GemPeriodRepository extends JpaRepository<GemPeriod, Long> {
 
+    // ── Attraction detail page — bar chart ─────────────────────────
+    // Returns all gem periods for a specific attraction and date
+    @Query("""
+            SELECT g FROM GemPeriod g
+            WHERE g.attraction.id = :attractionId
+              AND g.forecastDate = :date
+            ORDER BY g.startTime ASC
+            """)
+    List<GemPeriod> findByAttractionIdAndDate(@Param("attractionId") Long attractionId,
+                                              @Param("date") LocalDate date);
+
+    // ── Recommendation — all gem periods for given dates ───────────
     @Query("""
             SELECT g FROM GemPeriod g
             JOIN FETCH g.attraction
-            WHERE g.forecastDate = :forecastDate
-            ORDER BY g.startTime ASC, g.gemScore DESC
+            WHERE g.forecastDate IN :dates
+            ORDER BY g.startTime ASC, g.attraction.avgRating DESC
             """)
-    List<GemPeriod> findByForecastDateOrderByStartTimeAscGemScoreDesc(LocalDate forecastDate);
+    List<GemPeriod> findByForecastDatesOrderByStartTimeAscAvgRatingDesc(
+            @Param("dates") List<LocalDate> dates);
 
     @Query("""
             SELECT g FROM GemPeriod g
             JOIN FETCH g.attraction
-            WHERE g.forecastDate = :forecastDate
+            WHERE g.forecastDate IN :dates
               AND g.attraction.category IN :categories
-            ORDER BY g.startTime ASC, g.gemScore DESC
+            ORDER BY g.startTime ASC, g.attraction.avgRating DESC
             """)
-    List<GemPeriod> findByForecastDateAndCategories(@Param("forecastDate") LocalDate forecastDate,
-                                                    @Param("categories") List<String> categories);
+    List<GemPeriod> findByForecastDatesAndCategories(
+            @Param("dates")      List<LocalDate> dates,
+            @Param("categories") List<String> categories);
 
     @Query("""
             SELECT g FROM GemPeriod g
             JOIN FETCH g.attraction
-            WHERE g.forecastDate = :forecastDate
+            WHERE g.forecastDate IN :dates
               AND g.attraction.category IN :categories
               AND g.attraction.wheelchair >= :wheelchair
-            ORDER BY g.startTime ASC, g.gemScore DESC
+            ORDER BY g.startTime ASC, g.attraction.avgRating DESC
             """)
-    List<GemPeriod> findByForecastDateAndCategoriesAndWheelchair(
-            @Param("forecastDate") LocalDate forecastDate,
-            @Param("categories")  List<String> categories,
-            @Param("wheelchair")  Integer wheelchair);
+    List<GemPeriod> findByForecastDatesAndCategoriesAndWheelchair(
+            @Param("dates")      List<LocalDate> dates,
+            @Param("categories") List<String> categories,
+            @Param("wheelchair") Integer wheelchair);
 
     @Query("""
             SELECT g FROM GemPeriod g
             JOIN FETCH g.attraction
-            WHERE g.forecastDate = :forecastDate
+            WHERE g.forecastDate IN :dates
               AND g.attraction.wheelchair >= :wheelchair
-            ORDER BY g.startTime ASC, g.gemScore DESC
+            ORDER BY g.startTime ASC, g.attraction.avgRating DESC
             """)
-    List<GemPeriod> findByForecastDateAndWheelchair(@Param("forecastDate") LocalDate forecastDate,
-                                                    @Param("wheelchair")  Integer wheelchair);
+    List<GemPeriod> findByForecastDatesAndWheelchair(
+            @Param("dates")      List<LocalDate> dates,
+            @Param("wheelchair") Integer wheelchair);
 
+    // ── Maintenance ────────────────────────────────────────────────
     @Transactional
     @Modifying
     @Query("DELETE FROM GemPeriod g WHERE g.forecastDate < :cutoff")
     void deleteByForecastDateBefore(@Param("cutoff") LocalDate cutoff);
-
 }
