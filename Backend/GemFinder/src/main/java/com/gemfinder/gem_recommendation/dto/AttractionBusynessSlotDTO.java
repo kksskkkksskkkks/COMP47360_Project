@@ -13,4 +13,5 @@ public class AttractionBusynessSlotDTO {
     private Double predictedDropoffs;
     private Short busynessLevel;
     private Boolean isGem;
+    private Boolean isOpen; // null = unknown, true = open, false = closed
 }

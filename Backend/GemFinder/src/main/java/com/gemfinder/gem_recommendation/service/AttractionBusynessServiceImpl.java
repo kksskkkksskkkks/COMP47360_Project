@@ -7,7 +7,7 @@ import com.gemfinder.busyness_forecast.service.BusynessForecastService;
 import com.gemfinder.gem_recommendation.dto.AttractionBusynessSlotDTO;
 import com.gemfinder.gem_recommendation.entity.GemPeriod;
 import com.gemfinder.gem_recommendation.repository.GemPeriodRepository;
-import com.gemfinder.gem_recommendation.service.AttractionBusynessService;
+import com.gemfinder.util.OpeningHoursUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -66,7 +66,8 @@ public class AttractionBusynessServiceImpl implements AttractionBusynessService 
                     cursor,
                     forecast != null ? forecast.getPredictedDropoffs() : 0.0,
                     forecast != null ? forecast.getBusynessLevel() : (short) 3,
-                    gemSlots.contains(finalCursor)
+                    gemSlots.contains(finalCursor),
+                    OpeningHoursUtil.isOpen(attraction.getOpeningHours(), cursor)
             ));
 
             cursor = cursor.plusMinutes(30);
