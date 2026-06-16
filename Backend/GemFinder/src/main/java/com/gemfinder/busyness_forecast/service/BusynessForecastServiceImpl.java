@@ -101,6 +101,15 @@ public class BusynessForecastServiceImpl implements BusynessForecastService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<BusynessForecastDTO> getAllZonesInRange(LocalDateTime from, LocalDateTime to) {
+        return forecastRepository.findAllByTimeBucketBetween(from, to)
+                .stream()
+                .map(BusynessForecastMapper::toDTO)
+                .toList();
+    }
+
     // ── Private helpers ────────────────────────────────────────────
 
     /** Rounds down to the nearest 30-minute boundary, matching Flask .floor('30min'). */

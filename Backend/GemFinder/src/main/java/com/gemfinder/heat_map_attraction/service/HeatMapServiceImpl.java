@@ -8,6 +8,7 @@ import com.gemfinder.busyness_forecast.dto.BusynessForecastDTO;
 import com.gemfinder.busyness_forecast.service.BusynessForecastService;
 import com.gemfinder.heat_map_attraction.dto.HeatMapAttractionPointDTO;
 import com.gemfinder.heat_map_attraction.mapper.HeatMapAttractionMapper;
+import com.gemfinder.util.OpeningHoursUtil;
 import io.leonard.OpeningHoursEvaluator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,8 @@ public class HeatMapServiceImpl implements HeatMapService {
         Map<Integer, BusynessForecastDTO> forecastByZone =
                 busynessForecastService.getAllZonesAtTime(timeBucket)
                         .stream()
-                        .collect(Collectors.toMap(BusynessForecastDTO::getZoneId, f -> f));
+                        .collect(Collectors.toMap(BusynessForecastDTO -> BusynessForecastDTO.getZoneId(),
+                                BusynessForecastDTO -> BusynessForecastDTO));
 
         return attractions.stream()
                 .map(a -> buildDTO(a, timeBucket, forecastByZone.get(a.getZoneId())))
@@ -55,26 +57,26 @@ public class HeatMapServiceImpl implements HeatMapService {
                                                LocalDateTime timeBucket,
                                                BusynessForecastDTO forecast) {
         HeatMapAttractionPointDTO dto = heatMapAttractionMapper.toDTO(a);
-        dto.setIsOpen(isOpen(a.getOpeningHours(), timeBucket));
+        dto.setIsOpen(OpeningHoursUtil.isOpen(a.getOpeningHours(), timeBucket));
         heatMapAttractionMapper.applyForecast(dto, forecast);
         return dto;
     }
 
-    /**
-     * Evaluates whether an attraction is open at the given time using
-     * the opening-hours-evaluator library (OSM format).
-     * Returns null if the string cannot be parsed.
-     */
-    private Boolean isOpen(String openingHours, LocalDateTime time) {
-        if (openingHours == null || openingHours.isBlank()) return null;
-        try {
-            OpeningHoursParser parser = new OpeningHoursParser(
-                    new ByteArrayInputStream(openingHours.getBytes()));
-            List<Rule> rules = parser.rules(false); // false = non-strict mode
-            return OpeningHoursEvaluator.isOpenAt(time, rules);
-        } catch (Exception e) {
-            log.debug("Could not parse opening hours '{}': {}", openingHours, e.getMessage());
-            return null;
-        }
-    }
+//    /**
+//     * Evaluates whether an attraction is open at the given time using
+//     * the opening-hours-evaluator library (OSM format).
+//     * Returns null if the string cannot be parsed.
+//     */
+//    private Boolean isOpen(String openingHours, LocalDateTime time) {
+//        if (openingHours == null || openingHours.isBlank()) return null;
+//        try {
+//            OpeningHoursParser parser = new OpeningHoursParser(
+//                    new ByteArrayInputStream(openingHours.getBytes()));
+//            List<Rule> rules = parser.rules(false); // false = non-strict mode
+//            return OpeningHoursEvaluator.isOpenAt(time, rules);
+//        } catch (Exception e) {
+//            log.debug("Could not parse opening hours '{}': {}", openingHours, e.getMessage());
+//            return null;
+//        }
+//    }
 }
