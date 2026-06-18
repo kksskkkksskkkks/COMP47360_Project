@@ -18,4 +18,7 @@ public interface UserRatingRepository extends JpaRepository<UserRating, Long> {
     Optional<UserRating> findByUserIdAndAttractionId(Long userId, Long attractionId);
 
     boolean existsByUserIdAndAttractionId(Long userId, Long attractionId);
+
+    // For user stats: total ratings count
+    long countByUserId(Long userId);
 }
