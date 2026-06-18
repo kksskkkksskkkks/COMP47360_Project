@@ -19,4 +19,8 @@ public interface UserCheckinRepository extends JpaRepository<UserCheckin, Long> 
 
     Page<UserCheckin> findByAttractionId(Long attractionId, Pageable pageable);
 
-    }
+    // For user stats: distinct attractions visited (does not count repeat checkins at the same place)
+    @Query("SELECT COUNT(DISTINCT c.attraction.id) FROM UserCheckin c WHERE c.user.id = :userId")
+    long countDistinctAttractionByUserId(@Param("userId") Long userId);
+
+}

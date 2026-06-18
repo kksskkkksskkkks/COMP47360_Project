@@ -7,6 +7,7 @@ import com.gemfinder.busyness_forecast.service.BusynessForecastService;
 import com.gemfinder.gem_recommendation.dto.RecommendationSlotDTO;
 import com.gemfinder.gem_recommendation.dto.RecommendedAttractionDTO;
 import com.gemfinder.gem_recommendation.entity.GemPeriod;
+import com.gemfinder.gem_recommendation.mapper.RecommendedAttractionMapper;
 import com.gemfinder.gem_recommendation.repository.GemPeriodRepository;
 import com.gemfinder.gem_recommendation.service.RecommendationService;
 import com.gemfinder.util.OpeningHoursUtil;
@@ -62,7 +63,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     .sorted(Comparator.comparingDouble(
                             p -> -p.getAttraction().getAvgRating()))
                     .limit(ATTRACTIONS_PER_SLOT)
-                    .map(this::toDTO)
+                    .map(RecommendedAttractionMapper::toDTO)
                     .toList();
 
             picked.forEach(a -> usedIds.add(a.getId()));
@@ -191,24 +192,5 @@ public class RecommendationServiceImpl implements RecommendationService {
             cursor = cursor.plusMinutes(30);
         }
         return slots;
-    }
-
-    private RecommendedAttractionDTO toDTO(GemPeriod p) {
-        Attraction a = p.getAttraction();
-        RecommendedAttractionDTO dto = new RecommendedAttractionDTO();
-        dto.setId(a.getId());
-        dto.setName(a.getName());
-        dto.setCategory(a.getCategory());
-        dto.setLat(a.getLat());
-        dto.setLon(a.getLon());
-        dto.setZoneId(a.getZoneId());
-        dto.setOpeningHours(a.getOpeningHours());
-        dto.setIsOpen(OpeningHoursUtil.isOpen(a.getOpeningHours(), p.getStartTime()));
-        dto.setAvgRating(a.getAvgRating());
-        dto.setImagePath(a.getImagePath());
-        dto.setWheelchair(a.getWheelchair());
-        dto.setBusynessLevel(p.getBusynessLevel());
-        dto.setPredictedDropoffs(p.getPredictedDropoffs());
-        return dto;
     }
 }
