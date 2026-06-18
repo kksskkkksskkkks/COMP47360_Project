@@ -7,7 +7,6 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "attraction")
+@ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(
@@ -24,10 +23,12 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_gem_periods_attraction_id", columnList = "attraction_id"),
                 @Index(name = "idx_gem_periods_forecast_date", columnList = "forecast_date"),
                 @Index(name = "idx_gem_attraction_time",       columnList = "attraction_id, start_time")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_gem_attraction_start",
+                        columnNames = {"attraction_id", "start_time"})
         }
 )
-
-
 @EntityListeners(AuditingEntityListener.class)
 public class GemPeriod {
 
@@ -45,22 +46,16 @@ public class GemPeriod {
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    // service layer enforces end_time > start_time before persist
+    // 1-5 busyness level — used for colour coding on the chart
     @NotNull
-    @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime;
-
-    // range 0–5 validated by service layer
-    @NotNull
-    @Min(0) @Max(5)
+    @Min(1) @Max(5)
     @Column(name = "busyness_level", nullable = false)
     private Short busynessLevel;
 
-    // computed by batch job; DECIMAL(5,2) for precision
+    // Raw model output — used as Y-axis on the bar chart
     @NotNull
-    @Positive
-    @Column(name = "gem_score", nullable = false, precision = 5, scale = 2)
-    private BigDecimal gemScore;
+    @Column(name = "predicted_dropoffs", nullable = false)
+    private Double predictedDropoffs;
 
     @NotNull
     @Column(name = "forecast_date", nullable = false)

@@ -27,4 +27,10 @@ public interface BusynessForecastService {
      * Used for rendering the heatmap snapshot.
      */
     List<BusynessForecastDTO> getAllZonesAtTime(LocalDateTime timeBucket);
+
+    /**
+     * Returns busyness forecasts for all zones within a time range.
+     * Used by generateAndSave() to batch-fetch data and avoid N+1 queries.
+     */
+    List<BusynessForecastDTO> getAllZonesInRange(LocalDateTime from, LocalDateTime to);
 }

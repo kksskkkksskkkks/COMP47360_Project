@@ -28,4 +28,9 @@ public interface BusynessForecastRepository extends JpaRepository<BusynessForeca
     // All zones for a single time slot (for heatmap snapshot)
     @Query("SELECT f FROM BusynessForecast f WHERE f.id.timeBucket = :timeBucket ORDER BY f.id.zoneId")
     List<BusynessForecast> findAllZonesByTimeBucket(@Param("timeBucket") LocalDateTime timeBucket);
+
+    // All zones for a time range — used by generateAndSave() to avoid N+1 queries
+    @Query("SELECT f FROM BusynessForecast f WHERE f.id.timeBucket BETWEEN :from AND :to")
+    List<BusynessForecast> findAllByTimeBucketBetween(@Param("from") LocalDateTime from,
+                                                      @Param("to")   LocalDateTime to);
 }

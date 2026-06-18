@@ -42,7 +42,6 @@ log = logging.getLogger(__name__)
 # ── Config ──────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# mysql.connector requires 'database' key, config.py uses 'db_name'
 _DB = {
     'host':     DB_CONFIG['host'],
     'port':     DB_CONFIG['port'],
@@ -57,6 +56,9 @@ FORECAST_HOURS = SCHEDULE_CONFIG['forecast_hours']
 WX_LAT         = WEATHER_CONFIG['latitude']
 WX_LON         = WEATHER_CONFIG['longitude']
 WX_TZ          = WEATHER_CONFIG['timezone']
+
+GEM_GENERATE_URL    = 'http://localhost:8080/api/recommendations/generate'
+GEM_INTERNAL_SECRET = os.environ.get('INTERNAL_SECRET', 'dev-secret-change-in-prod')
 
 # ── Model & features ────────────────────────────────────────────────
 model = lgb.Booster(model_file=os.path.join(BASE_DIR, '../ML/output/lgb_model.txt'))
@@ -100,11 +102,6 @@ us_holidays = holidays.US(state='NY', years=[2025, 2026, 2027])
 # ════════════════════════════════════════════════════════════════════
 
 def fetch_forecast_weather(forecast_hours: int) -> pd.DataFrame:
-    """
-    Fetch the next N hours of weather from the Open-Meteo Forecast API.
-    Returns a DataFrame with columns:
-        hour_bucket / temperature_2m / precipitation / weathercode / windspeed_10m
-    """
     url = 'https://api.open-meteo.com/v1/forecast'
     params = {
         'latitude':      WX_LAT,
@@ -169,16 +166,11 @@ def _lag_from_anchor(zone_id, anchor_ts, lag_weeks):
 
 
 def _rolling_mean_from_anchor(zone_id, anchor_ts):
-    """
-    Reproduce notebook Cell 19 rolling_mean_4w:
-    shift(336).rolling(window=4*336, min_periods=1).mean()
-    i.e. from anchor-1w back 4 weeks (1344 slots), take the mean.
-    """
     if anchor_ts is None:
         return 0.0
     anchor = pd.Timestamp(anchor_ts)
-    end    = anchor - timedelta(weeks=1)   # anchor-1w (exclusive)
-    start  = anchor - timedelta(weeks=5)   # anchor-5w (inclusive)
+    end    = anchor - timedelta(weeks=1)
+    start  = anchor - timedelta(weeks=5)
     mask = (
         (historical_df['zone_id']     == zone_id) &
         (historical_df['time_bucket'] >  start)   &
@@ -191,46 +183,6 @@ def _rolling_mean_from_anchor(zone_id, anchor_ts):
 # ════════════════════════════════════════════════════════════════════
 # Feature matrix (batch)
 # ════════════════════════════════════════════════════════════════════
-
-# def build_feature_matrix(zone_ids: list, time_slots: list,
-#                          wx_df: pd.DataFrame) -> pd.DataFrame:
-#     wx_lookup = wx_df.set_index('hour_bucket').to_dict('index')
-#     rows = []
-#     for zone_id in zone_ids:
-#         for ts in time_slots:
-#             wx     = wx_lookup.get(ts.floor('h'), {})
-#             anchor = _get_anchor(zone_id, ts)
-#             rows.append({
-#                 'zone_id':         zone_id,
-#                 'slot_of_day':     ts.hour * 2 + int(ts.minute >= 30),
-#                 'dayofweek':       ts.dayofweek,
-#                 'is_weekend':      int(ts.dayofweek >= 5),
-#                 'month':           ts.month,
-#                 'is_holiday':      int(ts.date() in us_holidays),
-#                 'hour_sin':        np.sin(2 * np.pi * ts.hour / 24),
-#                 'hour_cos':        np.cos(2 * np.pi * ts.hour / 24),
-#                 'dow_sin':         np.sin(2 * np.pi * ts.dayofweek / 7),
-#                 'dow_cos':         np.cos(2 * np.pi * ts.dayofweek / 7),
-#                 'month_sin':       np.sin(2 * np.pi * ts.month / 12),
-#                 'month_cos':       np.cos(2 * np.pi * ts.month / 12),
-#                 'lag_1w':          _lag_from_anchor(zone_id, anchor, 1),
-#                 'lag_2w':          _lag_from_anchor(zone_id, anchor, 2),
-#                 'lag_3w':          _lag_from_anchor(zone_id, anchor, 3),
-#                 'rolling_mean_4w': _rolling_mean_from_anchor(zone_id, anchor),
-#                 'temperature_2m':  float(wx.get('temperature_2m', 15)),
-#                 'precipitation':   float(wx.get('precipitation', 0)),
-#                 'weathercode':     float(wx.get('weathercode', 1)),
-#                 'windspeed_10m':   float(wx.get('windspeed_10m', 5)),
-#                 'is_raining':      int(float(wx.get('precipitation', 0)) > 0.2),
-#                 # DB write columns — not passed to the model
-#                 '_time_bucket':    ts,
-#                 '_temperature_2m': float(wx.get('temperature_2m', 15)),
-#                 '_precipitation':  float(wx.get('precipitation', 0)),
-#                 '_weathercode':    int(wx.get('weathercode', 1)),
-#                 '_windspeed_10m':  float(wx.get('windspeed_10m', 5)),
-#             })
-#     return pd.DataFrame(rows)
-
 
 from multiprocessing import Pool, cpu_count
 
@@ -286,7 +238,6 @@ def build_feature_matrix(zone_ids: list, time_slots: list,
     return pd.DataFrame(rows)
 
 
-
 # ════════════════════════════════════════════════════════════════════
 # Busyness level
 # ════════════════════════════════════════════════════════════════════
@@ -310,6 +261,27 @@ def to_level_relative(predicted: float, zone_id: int) -> int:
     elif ratio < 0.60: return 3
     elif ratio < 0.80: return 4
     else:              return 5
+
+
+# ════════════════════════════════════════════════════════════════════
+# Gem generation trigger
+# ════════════════════════════════════════════════════════════════════
+
+def trigger_gem_generation():
+    """Calls Spring Boot to regenerate gem periods after busyness data is ready."""
+    try:
+        log.info("Triggering gem period generation...")
+        resp = requests.post(
+            GEM_GENERATE_URL,
+            headers={"X-Internal-Secret": GEM_INTERNAL_SECRET},
+            timeout=300
+        )
+        if resp.status_code == 200:
+            log.info("Gem generation completed successfully")
+        else:
+            log.warning(f"Gem generation returned status {resp.status_code}")
+    except Exception as e:
+        log.error(f"Failed to trigger gem generation: {e}")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -387,11 +359,15 @@ def run_forecast():
         log.info(f"DB write done: {len(records)} rows upserted")
     except Exception as e:
         log.error(f"DB write failed: {e}")
+        return  # Don't trigger gem generation if busyness write failed
     finally:
         cursor.close()
         conn.close()
 
     log.info(f"=== forecast job finished in {time.time() - t0:.1f}s ===")
+
+    # 5. Trigger gem period generation now that busyness data is ready
+    trigger_gem_generation()
 
 
 # ════════════════════════════════════════════════════════════════════
