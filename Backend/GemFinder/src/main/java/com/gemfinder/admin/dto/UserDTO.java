@@ -17,4 +17,5 @@ public class UserDTO {
     private Boolean highContrast;
     private Instant createdAt;
     private Instant updatedAt;
+    // tokenVersion is intentionally not exposed to the client — internal field only
 }
