@@ -1,7 +1,6 @@
 package com.gemfinder.admin.service;
 
 import com.gemfinder.admin.dto.UserDTO;
-import com.gemfinder.auth.dto.*;
 import com.gemfinder.enums.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,26 +22,23 @@ public interface UserService {
 
     // ── Admin write operations ─────────────────────────────────────────
 
-    /** Updates a user's role. */
-    UserDTO updateRole(Long id, Role role);
+    /**
+     * Updates a user's role.
+     * SUPERADMIN-only at the controller level. The target user's CURRENT
+     * role must not be SUPERADMIN — no one may change a superadmin's role.
+     */
+    UserDTO updateRole(Long id, Role role, Role actorRole);
 
-    /** Deactivates a user account (soft delete). */
-    UserDTO deactivate(Long id);
+    /**
+     * Deactivates a user account (soft delete).
+     * ADMIN may only deactivate users whose current role is USER.
+     * SUPERADMIN may deactivate anyone except another SUPERADMIN.
+     */
+    UserDTO deactivate(Long id, Role actorRole);
 
-    /** Reactivates a previously deactivated user account. */
-    UserDTO activate(Long id);
-
-    // ── User self-service ──────────────────────────────────────────────
-
-    /** Updates the high contrast preference for the given user. */
-    UserDTO updateHighContrast(Long id, Boolean highContrast);
-
-    /** Updates username; throws 409 if already taken. */
-    UserDTO updateUsername(Long id, UpdateUsernameRequest request);
-
-    /** Updates email; throws 409 if already in use. */
-    UserDTO updateEmail(Long id, UpdateEmailRequest request);
-
-    /** Updates password; throws 401 if current password is wrong. */
-    UserDTO updatePassword(Long id, UpdatePasswordRequest request);
+    /**
+     * Reactivates a previously deactivated user account.
+     * Same target-role restrictions as deactivate().
+     */
+    UserDTO activate(Long id, Role actorRole);
 }

@@ -53,6 +53,14 @@ public class User {
     @Column(name = "high_contrast", nullable = false)
     private Boolean highContrast = false;
 
+    // Incremented every time the password is changed / account is banned / unbanned /
+    // all devices are force-logged-out.
+    // The JWT carries the version number at issuance time; on validation it's compared
+    // against this field — a mismatch means the token is treated as invalid.
+    @NotNull
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
