@@ -1,7 +1,6 @@
 package com.gemfinder.admin.service;
 
 import com.gemfinder.admin.dto.UserDTO;
-import com.gemfinder.auth.dto.*;
 import com.gemfinder.admin.entity.User;
 //import com.gemfinder.admin.entity.User.Role;
 import com.gemfinder.admin.mapper.UserMapper;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // ── Single-record lookup ───────────────────────────────────────────
 
@@ -52,77 +49,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO updateRole(Long id, Role role) {
+    public UserDTO updateRole(Long id, Role role, Role actorRole) {
         User user = findOrThrow(id);
+        // Controller already restricts this method to SUPERADMIN callers,
+        // but a SUPERADMIN still must not be able to touch another SUPERADMIN.
+        if (user.getRole() == Role.SUPERADMIN) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Cannot change another superadmin's role");
+        }
         user.setRole(role);
-        log.info("Updated role for user id={} to {}", id, role);
+        // Force re-login immediately after a role change, so the user can no
+        // longer act under their old (possibly higher) privilege level using
+        // an already-issued token.
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        log.info("Updated role for user id={} to {}, tokenVersion={}", id, role, user.getTokenVersion());
         return UserMapper.toDTO(userRepository.save(user));
     }
 
     @Override
     @Transactional
-    public UserDTO deactivate(Long id) {
+    public UserDTO deactivate(Long id, Role actorRole) {
         User user = findOrThrow(id);
+        checkTargetRoleAllowed(user, actorRole);
         user.setIsActive(false);
-        log.info("Deactivated user id={}", id);
+        // Invalidate existing tokens immediately upon ban
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        log.info("Deactivated user id={}, tokenVersion={}", id, user.getTokenVersion());
         return UserMapper.toDTO(userRepository.save(user));
     }
 
     @Override
     @Transactional
-    public UserDTO activate(Long id) {
+    public UserDTO activate(Long id, Role actorRole) {
         User user = findOrThrow(id);
+        checkTargetRoleAllowed(user, actorRole);
         user.setIsActive(true);
         log.info("Activated user id={}", id);
-        return UserMapper.toDTO(userRepository.save(user));
-    }
-
-    // ── User self-service ──────────────────────────────────────────────
-
-    @Override
-    @Transactional
-    public UserDTO updateHighContrast(Long id, Boolean highContrast) {
-        User user = findOrThrow(id);
-        user.setHighContrast(highContrast);
-        return UserMapper.toDTO(userRepository.save(user));
-    }
-
-    @Override
-    @Transactional
-    public UserDTO updateUsername(Long id, UpdateUsernameRequest request) {
-        User user = findOrThrow(id);
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Username already taken: " + request.getUsername());
-        }
-        user.setUsername(request.getUsername());
-        log.info("Updated username for user id={}", id);
-        return UserMapper.toDTO(userRepository.save(user));
-    }
-
-    @Override
-    @Transactional
-    public UserDTO updateEmail(Long id, UpdateEmailRequest request) {
-        User user = findOrThrow(id);
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Email already in use: " + request.getEmail());
-        }
-        user.setEmail(request.getEmail());
-        log.info("Updated email for user id={}", id);
-        return UserMapper.toDTO(userRepository.save(user));
-    }
-
-    @Override
-    @Transactional
-    public UserDTO updatePassword(Long id, UpdatePasswordRequest request) {
-        User user = findOrThrow(id);
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "Current password is incorrect");
-        }
-        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        log.info("Updated password for user id={}", id);
         return UserMapper.toDTO(userRepository.save(user));
     }
 
@@ -132,5 +94,22 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found with id: " + id));
+    }
+
+    /**
+     * Enforces the target-role rules for deactivate()/activate():
+     *   - ADMIN may only act on a target whose current role is USER.
+     *   - SUPERADMIN may act on anyone except another SUPERADMIN.
+     * (USER callers never reach here — blocked earlier by @PreAuthorize.)
+     */
+    private void checkTargetRoleAllowed(User target, Role actorRole) {
+        if (actorRole == Role.ADMIN && target.getRole() != Role.USER) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Admins may only modify accounts with role USER");
+        }
+        if (actorRole == Role.SUPERADMIN && target.getRole() == Role.SUPERADMIN) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Cannot modify another superadmin's account");
+        }
     }
 }
