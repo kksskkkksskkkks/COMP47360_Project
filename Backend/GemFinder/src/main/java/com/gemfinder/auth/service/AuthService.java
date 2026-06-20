@@ -1,14 +1,28 @@
 package com.gemfinder.auth.service;
 
-import com.gemfinder.auth.dto.LoginRequest;
-import com.gemfinder.auth.dto.RegisterRequest;
+import com.gemfinder.auth.dto.*;
 import com.gemfinder.admin.dto.UserDTO;
 
 public interface AuthService {
 
-    /** Registers a new user; throws 409 if email or username already exists. */
+    /** Register a new user, returning the user info */
     UserDTO register(RegisterRequest request);
 
-    /** Validates credentials and returns the user; throws 401 if invalid. */
-    UserDTO login(LoginRequest request);
+    /** Validate login credentials; on success return a JWT + user info */
+    JwtResponse login(LoginRequest request);
+
+    /** Change the password */
+    void updatePassword(Long userId, UpdatePasswordRequest request);
+
+    /** Immediately invalidate all tokens currently issued to this user (force logout of all devices) */
+    void logoutAllDevices(Long userId);
+
+    /** Updates the high contrast preference for the current user */
+    UserDTO updateHighContrast(Long userId, Boolean highContrast);
+
+    /** Updates the current user's username; throws 409 if already taken */
+    UserDTO updateUsername(Long userId, UpdateUsernameRequest request);
+
+    /** Updates the current user's email; throws 409 if already in use */
+    UserDTO updateEmail(Long userId, UpdateEmailRequest request);
 }
