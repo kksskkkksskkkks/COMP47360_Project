@@ -3,13 +3,18 @@ package com.gemfinder.attractions.spec;
 import com.gemfinder.attractions.entity.Attraction;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
+
 public class AttractionSpec {
 
     private AttractionSpec() {}
 
-    public static Specification<Attraction> hasCategory(String category) {
+    // String -> List<String>, exact "equal" match replaced with "IN"
+    public static Specification<Attraction> hasCategory(List<String> categories) {
         return (root, query, cb) ->
-                category == null ? null : cb.equal(root.get("category"), category);
+                (categories == null || categories.isEmpty())
+                        ? null
+                        : root.get("category").in(categories);
     }
 
     public static Specification<Attraction> hasKeyword(String keyword) {
