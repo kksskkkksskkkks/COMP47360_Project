@@ -42,7 +42,8 @@ FLOAT_COLUMNS      = {"lat", "lon", "avg_rating", "original_avg_rating"}
 INT_COLUMNS        = {"zone_id", "suggested_duration_min", "rating_count", "original_rating_count"}
 WHEELCHAIR_COLUMNS = {"wheelchair"}
 
-# wheelchair TINYINT: yes → 2, limited → 1, no/other → 0
+# wheelchair TINYINT: source CSV already stores numeric codes (0/1/2).
+# Fall back to string mapping only if a raw OSM-style value ever shows up.
 _WHEELCHAIR_MAP = {
     "yes":     2,
     "limited": 1,
@@ -50,7 +51,10 @@ _WHEELCHAIR_MAP = {
 }
 
 def _to_wheelchair(val: str) -> int:
-    return _WHEELCHAIR_MAP.get(str(val).strip().lower(), 0)
+    s = str(val).strip().lower()
+    if s in ("0", "1", "2"):
+        return int(s)
+    return _WHEELCHAIR_MAP.get(s, 0)
 
 
 def coerce(col_db: str, raw: str):
