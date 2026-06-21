@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: "FILL" 0;
+}
+
+/* Material Symbols is a variable font — changing the icon's ligature name
+   alone (e.g. "favorite" vs "favorite_border") doesn't make it solid. The
+   FILL axis is what actually switches an icon from outline to filled. */
+.material-symbols-outlined.icon-fill {
+  font-variation-settings: "FILL" 1;
+}
+
+/* The mini map's busyness "glow" halo — slow expand/contract + opacity
+   pulse, like a heartbeat. transform-origin stays centered so it breathes
+   outward symmetrically instead of drifting. Only plays while hovering the
+   mini map (.minimap-root) — sits still otherwise. */
+@keyframes glow-breathe {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+.glow-breathe {
+  transform-origin: center;
+}
+.minimap-root:hover .glow-breathe {
+  animation: glow-breathe 2.8s ease-in-out infinite;
+}
+
