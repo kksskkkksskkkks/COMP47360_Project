@@ -139,8 +139,7 @@ export default function HeatMap() {
       <header className="flex flex-col gap-md">
         <h1 className="font-display-lg text-display-lg text-on-surface">Crowd Heat Map</h1>
         <p className="text-body-md font-body-md text-secondary">
-          Live snapshot of how busy each location is right now, sourced from{" "}
-          <span className="font-label-caps text-label-caps">/api/map/attractions</span>.
+          Live snapshot of how busy each location is right now.
         </p>
 
         <div className="flex items-center gap-sm bg-surface-container-lowest p-sm rounded-xl border border-outline-variant/30 shadow-[0_10px_40px_rgba(0,104,95,0.04)]">

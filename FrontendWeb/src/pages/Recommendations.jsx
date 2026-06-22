@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { recommendationApi, readBoolField } from "../lib/api";
 import AttractionCard from "../components/AttractionCard";
 
@@ -63,6 +63,7 @@ export default function Recommendations() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [expandedKey, setExpandedKey] = useState(null);
+  const [nowKey, setNowKey] = useState(null);
 
   function toggleCategory(value) {
     setSelectedCategories((prev) =>
@@ -70,8 +71,13 @@ export default function Recommendations() {
     );
   }
 
-  useEffect(() => {
-    let active = true;
+  // requestIdRef guards against a stale response landing after a newer one
+  // (e.g. the user clicks "Get Recommendations" twice in quick succession) —
+  // only the most recent in-flight request is allowed to update state.
+  const requestIdRef = useRef(0);
+
+  function fetchRecommendations() {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setErrorMsg("");
 
@@ -83,7 +89,7 @@ export default function Recommendations() {
     recommendationApi
       .list(params)
       .then((res) => {
-        if (!active) return;
+        if (requestIdRef.current !== requestId) return;
         const data = res.data || [];
 
         if (import.meta.env.DEV) {
@@ -103,29 +109,34 @@ export default function Recommendations() {
           else break;
         }
         setExpandedKey(candidate ? candidate.timeBucket : null);
+        setNowKey(candidate ? candidate.timeBucket : null);
       })
       .catch((err) => {
-        if (!active) return;
+        if (requestIdRef.current !== requestId) return;
         setErrorMsg(err.response?.data?.message || "Failed to load recommendations.");
       })
-      .finally(() => active && setLoading(false));
+      .finally(() => {
+        if (requestIdRef.current === requestId) setLoading(false);
+      });
+  }
 
-    return () => {
-      active = false;
-    };
-  }, [selectedCategories, accessibleOnly]);
+  // Only fetch once on initial mount. Changing category/accessible filters
+  // no longer auto-refreshes — the user clicks "Get Recommendations" to
+  // apply whatever filters are currently selected.
+  useEffect(() => {
+    fetchRecommendations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const dayGroups = useMemo(() => groupByDay(slots), [slots]);
 
   return (
     <main className="flex-grow max-w-[1440px] mx-auto w-full px-lg py-xl flex flex-col gap-lg">
       <header className="flex flex-col gap-md">
-        <div>
-          <h1 className="font-display-lg text-display-lg text-on-surface">Find Your Gem</h1>
-          <p className="text-body-lg font-body-lg text-secondary mt-1">
-            Precise recommendations based on live busyness and curated quality.
-          </p>
-        </div>
+        <h1 className="font-display-lg text-display-lg text-on-surface">Find Your Gem</h1>
+        <p className="text-body-md font-body-md text-secondary">
+          Precise recommendations based on live busyness and curated quality.
+        </p>
 
         <div className="flex flex-col md:flex-row gap-sm items-center justify-between bg-surface-container-lowest p-sm rounded-xl border border-outline-variant/30 shadow-[0_10px_40px_rgba(0,104,95,0.04)]">
           <div className="flex flex-wrap gap-xs items-center">
@@ -165,6 +176,18 @@ export default function Recommendations() {
               <span className="font-label-caps text-label-caps uppercase">Accessible</span>
             </button>
           </div>
+
+          {/* Filters above are only staged — nothing refetches until this is
+              clicked, so picking multiple categories/accessible doesn't fire
+              a request per click. */}
+          <button
+            onClick={fetchRecommendations}
+            disabled={loading}
+            className="px-md py-[8px] rounded-full flex items-center gap-xs bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:opacity-90 transition-opacity disabled:opacity-60 shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">diamond</span>
+            {loading ? "Loading…" : "Get Recommendations"}
+          </button>
         </div>
       </header>
 
@@ -186,9 +209,9 @@ export default function Recommendations() {
               <div className="flex flex-col gap-xs">
                 {group.slots.map((slot) => {
                   const isExpanded = expandedKey === slot.timeBucket;
-                  const isLive =
-                    new Date(slot.timeBucket).getTime() <= Date.now() &&
-                    group.date.toDateString() === new Date().toDateString();
+                  const isLive = nowKey === slot.timeBucket;
+                  const isPast = nowKey != null && !isLive && slot.timeBucket < nowKey;
+                  const isFuture = nowKey != null && !isLive && slot.timeBucket > nowKey;
                   const count = slot.attractions?.length ?? 0;
 
                   return (
@@ -211,6 +234,16 @@ export default function Recommendations() {
                           {isLive && (
                             <span className="flex items-center gap-1 text-primary text-label-caps font-label-caps uppercase">
                               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> Live Now
+                            </span>
+                          )}
+                          {isPast && (
+                            <span className="flex items-center gap-1 text-secondary/70 text-label-caps font-label-caps uppercase">
+                              <span className="w-2 h-2 rounded-full bg-secondary/40" /> Past Gems
+                            </span>
+                          )}
+                          {isFuture && (
+                            <span className="flex items-center gap-1 text-primary text-label-caps font-label-caps uppercase">
+                              <span className="w-2 h-2 rounded-full bg-primary" /> Future Gems
                             </span>
                           )}
                           <span className="text-body-md font-body-md text-on-surface">
