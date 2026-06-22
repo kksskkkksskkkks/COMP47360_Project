@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   authApi,
@@ -7,10 +7,13 @@ import {
   checkinApi,
   ratingApi,
   attractionApi,
+  mapApi,
+  currentSnapshotTimeBucket,
   readBoolField,
   isSessionExpired,
 } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import Pagination from "../components/Pagination";
 import AttractionCard from "../components/AttractionCard";
 
 // Activity-stats / favorites response shapes aren't pinned down by a shared
@@ -340,6 +343,150 @@ function EditProfileModal({ open, onClose, user, highContrast, onSaved, onSessio
   );
 }
 
+// One check-in entry, reused both in the "Recent Check-Ins" preview (top 5)
+// and inside the "View All" modal's paginated full list.
+function CheckinRow({ c }) {
+  return (
+    <Link
+      to={c.attraction ? `/gems/${c.attraction.id}` : "#"}
+      className="bg-surface-container-lowest p-sm rounded-lg shadow-[0_10px_30px_rgba(0,104,95,0.03)] flex items-center justify-between border border-transparent hover:border-primary/30 transition-colors"
+    >
+      <div className="flex items-center gap-sm">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <span className="material-symbols-outlined text-[20px]">location_on</span>
+        </div>
+        <div>
+          <p className="font-body-md text-body-md font-semibold text-on-surface">
+            {c.attraction?.name || "Unknown location"}
+          </p>
+          <p className="text-secondary text-[13px]">{formatDate(c.visitedAt)}</p>
+        </div>
+      </div>
+      {c.busynessAtVisit != null && (
+        <span className="font-label-caps text-label-caps text-secondary uppercase shrink-0">
+          Level {c.busynessAtVisit}/5
+        </span>
+      )}
+    </Link>
+  );
+}
+
+// One rating entry, same reuse pattern as CheckinRow above.
+function RatingRow({ r }) {
+  const score = Math.round(Number(r.rating) || 0);
+  return (
+    <Link
+      to={r.attraction ? `/gems/${r.attraction.id}` : "#"}
+      className="bg-surface-container-lowest p-sm rounded-lg shadow-[0_10px_30px_rgba(0,104,95,0.03)] flex items-center justify-between border border-transparent hover:border-primary/30 transition-colors"
+    >
+      <div>
+        <p className="font-body-md text-body-md font-semibold text-on-surface">
+          {r.attraction?.name || "Unknown location"}
+        </p>
+        <p className="text-secondary text-[13px]">{formatDate(r.updatedAt || r.createdAt)}</p>
+      </div>
+      <div className="flex items-center shrink-0">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`material-symbols-outlined text-[16px] ${
+              star <= score ? "text-primary icon-fill" : "text-outline-variant"
+            }`}
+          >
+            star
+          </span>
+        ))}
+      </div>
+    </Link>
+  );
+}
+
+// "View All" modal — paginated full list for either check-ins or ratings.
+// `fetchPage(page)` must resolve to { items, totalPages }; `renderRow` draws
+// one item the same way the 5-item preview on the main page does.
+function ActivityListModal({ open, onClose, title, fetchPage, renderRow }) {
+  const [page, setPage] = useState(0);
+  const [items, setItems] = useState([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Always reopen on page 1, regardless of where a previous session left off.
+  useEffect(() => {
+    if (open) setPage(0);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    setLoading(true);
+    setError("");
+    fetchPage(page)
+      .then((res) => {
+        if (!active) return;
+        setItems(res.items);
+        setTotalPages(res.totalPages);
+      })
+      .catch((err) => active && setError(err.response?.data?.message || "Failed to load."))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [open, page, fetchPage]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[3000] flex items-center justify-center bg-on-background/40 backdrop-blur-sm px-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-[640px] max-h-[85vh] bg-surface-container-lowest rounded-xl shadow-[0_30px_80px_rgba(0,104,95,0.15)] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-md pt-md flex items-center justify-between">
+          <h2 className="text-headline-md font-headline-md text-on-surface">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-[6px] rounded-full text-secondary hover:text-primary hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-[20px] block">close</span>
+          </button>
+        </div>
+
+        <div className="px-md py-md overflow-y-auto flex-1">
+          {loading ? (
+            <p className="text-secondary">Loading…</p>
+          ) : error ? (
+            <p className="text-error">{error}</p>
+          ) : items.length === 0 ? (
+            <p className="text-secondary text-[13px]">Nothing here yet.</p>
+          ) : (
+            <ul className="flex flex-col gap-xs">
+              {items.map((item) => (
+                <li key={item.id}>{renderRow(item)}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="px-md py-sm border-t border-outline-variant/30 shrink-0">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              canPrev={page > 0}
+              canNext={page + 1 < totalPages}
+              onChange={setPage}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Profile() {
   const { user, setUserLocal, logout } = useAuth();
   const navigate = useNavigate();
@@ -348,6 +495,7 @@ export default function Profile() {
   const [statsLoading, setStatsLoading] = useState(true);
 
   const [favorites, setFavorites] = useState([]);
+  const [favoriteStatusById, setFavoriteStatusById] = useState({}); // id -> { isOpen, busynessLevel }
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [favoritesError, setFavoritesError] = useState("");
 
@@ -364,6 +512,8 @@ export default function Profile() {
   const highContrast = readBoolField(user || {}, "isHighContrast", "highContrast", false);
 
   const [editOpen, setEditOpen] = useState(false);
+  const [checkinsModalOpen, setCheckinsModalOpen] = useState(false);
+  const [ratingsModalOpen, setRatingsModalOpen] = useState(false);
   const [logoutAllBusy, setLogoutAllBusy] = useState(false);
 
   useEffect(() => {
@@ -381,17 +531,37 @@ export default function Profile() {
       .then((res) => {
         if (!active) return;
         const favs = extractList(res.data); // UserFavoriteDTO[] — only has attractionId
-        if (favs.length === 0) return [];
-        return Promise.all(
-          favs.map((f) =>
-            attractionApi
-              .detail(f.attractionId)
-              .then((r) => r.data)
-              .catch(() => null)
-          )
-        );
+        if (favs.length === 0) return [[], []];
+        // AttractionDTO itself doesn't carry isOpen/busynessLevel — those
+        // only exist on the heat map snapshot, so fetch both in parallel
+        // and merge by id, same approach as AttractionList.jsx.
+        return Promise.all([
+          Promise.all(
+            favs.map((f) =>
+              attractionApi
+                .detail(f.attractionId)
+                .then((r) => r.data)
+                .catch(() => null)
+            )
+          ),
+          mapApi
+            .attractions(currentSnapshotTimeBucket())
+            .then((r) => r.data || [])
+            .catch(() => []),
+        ]);
       })
-      .then((attractions) => active && setFavorites((attractions || []).filter(Boolean)))
+      .then(([attractions, snapshot]) => {
+        if (!active) return;
+        const statusMap = {};
+        (snapshot || []).forEach((p) => {
+          statusMap[p.id] = {
+            isOpen: readBoolField(p, "isOpen", "open"),
+            busynessLevel: p.busynessLevel,
+          };
+        });
+        setFavorites((attractions || []).filter(Boolean));
+        setFavoriteStatusById(statusMap);
+      })
       .catch((err) => active && setFavoritesError(err.response?.data?.message || "Failed to load favorites."))
       .finally(() => active && setFavoritesLoading(false));
 
@@ -464,6 +634,43 @@ export default function Profile() {
       navigate("/login", { replace: true });
     }
   }
+
+  // Paginated fetchers for the "View All" modals — same hydration approach
+  // (attractionId -> attractionApi.detail) as the 5-item preview lists use,
+  // just one page (10 items) at a time instead of a flat top-5.
+  const fetchCheckinsPage = useCallback(
+    (page) =>
+      checkinApi.listByUser(user.id, { page, size: 10, sort: "visitedAt,desc" }).then((res) => {
+        const data = res.data;
+        const list = extractList(data);
+        return Promise.all(
+          list.map((c) =>
+            attractionApi
+              .detail(c.attractionId)
+              .then((r) => ({ ...c, attraction: r.data }))
+              .catch(() => ({ ...c, attraction: null }))
+          )
+        ).then((items) => ({ items, totalPages: data.totalPages ?? 1 }));
+      }),
+    [user]
+  );
+
+  const fetchRatingsPage = useCallback(
+    (page) =>
+      ratingApi.listByUser(user.id, { page, size: 10, sort: "updatedAt,desc" }).then((res) => {
+        const data = res.data;
+        const list = extractList(data);
+        return Promise.all(
+          list.map((r) =>
+            attractionApi
+              .detail(r.attractionId)
+              .then((res2) => ({ ...r, attraction: res2.data }))
+              .catch(() => ({ ...r, attraction: null }))
+          )
+        ).then((items) => ({ items, totalPages: data.totalPages ?? 1 }));
+      }),
+    [user]
+  );
 
   function handleLogout() {
     logout();
@@ -546,8 +753,16 @@ export default function Profile() {
       {/* Recent activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
         <section className="flex flex-col gap-sm">
-          <div className="flex justify-between items-center border-b border-outline-variant/30 pb-xs">
+          <div className="flex items-baseline gap-sm border-b border-outline-variant/30 pb-xs">
             <h2 className="text-headline-md font-headline-md text-on-surface">Recent Check-Ins</h2>
+            {recentCheckins.length > 0 && (
+              <button
+                onClick={() => setCheckinsModalOpen(true)}
+                className="text-primary font-bold text-label-caps font-label-caps uppercase hover:underline"
+              >
+                View All
+              </button>
+            )}
           </div>
           {checkinsLoading ? (
             <p className="text-secondary">Loading…</p>
@@ -557,27 +772,7 @@ export default function Profile() {
             <ul className="flex flex-col gap-xs">
               {recentCheckins.map((c) => (
                 <li key={c.id}>
-                  <Link
-                    to={c.attraction ? `/gems/${c.attraction.id}` : "#"}
-                    className="bg-surface-container-lowest p-sm rounded-lg shadow-[0_10px_30px_rgba(0,104,95,0.03)] flex items-center justify-between border border-transparent hover:border-primary/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-sm">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <span className="material-symbols-outlined text-[20px]">location_on</span>
-                      </div>
-                      <div>
-                        <p className="font-body-md text-body-md font-semibold text-on-surface">
-                          {c.attraction?.name || "Unknown location"}
-                        </p>
-                        <p className="text-secondary text-[13px]">{formatDate(c.visitedAt)}</p>
-                      </div>
-                    </div>
-                    {c.busynessAtVisit != null && (
-                      <span className="font-label-caps text-label-caps text-secondary uppercase shrink-0">
-                        Level {c.busynessAtVisit}/5
-                      </span>
-                    )}
-                  </Link>
+                  <CheckinRow c={c} />
                 </li>
               ))}
             </ul>
@@ -585,8 +780,16 @@ export default function Profile() {
         </section>
 
         <section className="flex flex-col gap-sm">
-          <div className="flex justify-between items-center border-b border-outline-variant/30 pb-xs">
+          <div className="flex items-baseline gap-sm border-b border-outline-variant/30 pb-xs">
             <h2 className="text-headline-md font-headline-md text-on-surface">Recent Ratings</h2>
+            {recentRatings.length > 0 && (
+              <button
+                onClick={() => setRatingsModalOpen(true)}
+                className="text-primary font-bold text-label-caps font-label-caps uppercase hover:underline"
+              >
+                View All
+              </button>
+            )}
           </div>
           {ratingsLoading ? (
             <p className="text-secondary">Loading…</p>
@@ -594,36 +797,11 @@ export default function Profile() {
             <p className="text-secondary text-[13px]">No ratings yet.</p>
           ) : (
             <ul className="flex flex-col gap-xs">
-              {recentRatings.map((r) => {
-                const score = Math.round(Number(r.rating) || 0);
-                return (
-                  <li key={r.id}>
-                    <Link
-                      to={r.attraction ? `/gems/${r.attraction.id}` : "#"}
-                      className="bg-surface-container-lowest p-sm rounded-lg shadow-[0_10px_30px_rgba(0,104,95,0.03)] flex items-center justify-between border border-transparent hover:border-primary/30 transition-colors"
-                    >
-                      <div>
-                        <p className="font-body-md text-body-md font-semibold text-on-surface">
-                          {r.attraction?.name || "Unknown location"}
-                        </p>
-                        <p className="text-secondary text-[13px]">{formatDate(r.updatedAt || r.createdAt)}</p>
-                      </div>
-                      <div className="flex items-center shrink-0">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span
-                            key={star}
-                            className={`material-symbols-outlined text-[16px] ${
-                              star <= score ? "text-primary icon-fill" : "text-outline-variant"
-                            }`}
-                          >
-                            star
-                          </span>
-                        ))}
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
+              {recentRatings.map((r) => (
+                <li key={r.id}>
+                  <RatingRow r={r} />
+                </li>
+              ))}
             </ul>
           )}
         </section>
@@ -643,7 +821,12 @@ export default function Profile() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-gutter gap-y-[0px]">
             {favorites.map((a) => (
-              <AttractionCard key={a.id} attraction={a} isOpen={readBoolField(a, "isOpen", "open")} busynessLevel={a.busynessLevel} />
+              <AttractionCard
+                key={a.id}
+                attraction={a}
+                isOpen={favoriteStatusById[a.id]?.isOpen ?? null}
+                busynessLevel={favoriteStatusById[a.id]?.busynessLevel ?? null}
+              />
             ))}
           </div>
         )}
@@ -656,6 +839,22 @@ export default function Profile() {
         highContrast={highContrast}
         onSaved={handleProfileSaved}
         onSessionExpired={handleSessionExpired}
+      />
+
+      <ActivityListModal
+        open={checkinsModalOpen}
+        onClose={() => setCheckinsModalOpen(false)}
+        title="All Check-Ins"
+        fetchPage={fetchCheckinsPage}
+        renderRow={(c) => <CheckinRow c={c} />}
+      />
+
+      <ActivityListModal
+        open={ratingsModalOpen}
+        onClose={() => setRatingsModalOpen(false)}
+        title="All Ratings"
+        fetchPage={fetchRatingsPage}
+        renderRow={(r) => <RatingRow r={r} />}
       />
     </main>
   );

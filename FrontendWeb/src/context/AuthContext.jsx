@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { authApi } from "../lib/api";
 
 const AuthContext = createContext(null);
@@ -10,6 +10,39 @@ export function AuthProvider({ children }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // localStorage is shared across every tab/window of this origin, but each
+  // tab's React state is only updated by ITS OWN code — if you log into a
+  // different account in another tab, this tab's `user` state has no idea
+  // the token underneath it just got swapped out from under it. It would
+  // keep showing the old account's name while silently making requests
+  // with the new account's token (since the axios interceptor reads
+  // localStorage fresh on every call). The "storage" event fires in every
+  // *other* tab whenever one tab writes to localStorage, so listening for
+  // it lets every open tab stay in sync the moment any one of them logs
+  // in, logs out, or switches accounts.
+  useEffect(() => {
+    function handleStorage(e) {
+      if (e.key !== "gem_finder_token" && e.key !== "gem_finder_user") return;
+
+      const token = localStorage.getItem("gem_finder_token");
+      const rawUser = localStorage.getItem("gem_finder_user");
+
+      if (!token || !rawUser) {
+        setUser(null);
+        return;
+      }
+
+      try {
+        setUser(JSON.parse(rawUser));
+      } catch {
+        setUser(null);
+      }
+    }
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   function persist(token, userDto) {
     localStorage.setItem("gem_finder_token", token);
