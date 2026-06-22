@@ -56,8 +56,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  // Lets the Profile page push an updated UserDTO (returned by the
+  // username/email/high-contrast endpoints) into local state + storage
+  // without a full re-login.
+  function setUserLocal(updatedUser) {
+    localStorage.setItem("gem_finder_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, setUserLocal }}>
       {children}
     </AuthContext.Provider>
   );

@@ -14,6 +14,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/gems";
+  const flash = location.state?.flash || "";
 
   const isLogin = mode === "login";
 
@@ -76,6 +77,12 @@ export default function Login() {
             ? "Enter your details to access your curated gems."
             : "Join the exclusive community of explorers."}
         </p>
+
+        {flash && (
+          <p className="text-primary text-body-md font-body-md bg-primary/10 rounded-lg px-sm py-[10px] mb-md">
+            {flash}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-sm" id="auth-form">
           {!isLogin && (

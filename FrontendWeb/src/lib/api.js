@@ -20,9 +20,34 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor:
-// 1) Unwrap { code, message, data } -> return data directly, so call sites don't
-//    need to write .data.data everywhere.
+// Decodes (without verifying — that's the server's job) the `exp` claim out
+// of a JWT's payload, purely so the UI can proactively recognize "this
+// token is already dead" before firing a request, instead of guessing
+// based on a 401 status code that could mean several different things.
+function getTokenExpiryMs(token) {
+  try {
+    const payload = token.split(".")[1];
+    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof json.exp === "number" ? json.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+// True if there's no token, or the locally stored one has already passed
+// its `exp` time. Used to distinguish a genuinely expired session from an
+// endpoint-specific 401 that means something else (e.g. "wrong current
+// password" on PUT /auth/password) — both come back as a bare 401, but
+// only one of them should trigger a forced re-login.
+export function isSessionExpired() {
+  const token = localStorage.getItem("gem_finder_token");
+  if (!token) return true;
+  const expiryMs = getTokenExpiryMs(token);
+  if (expiryMs == null) return false; // can't decode it — don't guess
+  return Date.now() >= expiryMs;
+}
+
+
 //    Note: the admin GET /api/users endpoint and SSE streaming endpoints don't use
 //    this envelope, so we only unwrap when the shape actually matches
 //    { code, message, data }; otherwise the response is left untouched.
@@ -37,7 +62,12 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    // The change-password endpoint deliberately returns 401 to mean
+    // "current password is incorrect" — a business-logic error, not an
+    // expired session. Don't let that trigger the global auto-logout, or
+    // the user gets yanked to /login before ever seeing the real message.
+    const isPasswordChangeRequest = error.config?.url?.includes("/auth/password");
+    if (error.response?.status === 401 && !isPasswordChangeRequest) {
       localStorage.removeItem("gem_finder_token");
       localStorage.removeItem("gem_finder_user");
       if (window.location.pathname !== "/login") {

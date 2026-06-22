@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import Recommendations from "./pages/Recommendations";
 import AttractionList from "./pages/AttractionList";
 import AttractionDetail from "./pages/AttractionDetail";
@@ -76,6 +77,17 @@ export default function App() {
                   <LazyPage>
                     <HeatMap />
                   </LazyPage>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Profile />
                 </Layout>
               </ProtectedRoute>
             }

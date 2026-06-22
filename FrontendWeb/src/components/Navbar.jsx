@@ -9,7 +9,7 @@ const links = [
 
 export default function Navbar() {
   const { pathname } = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <nav className="fixed top-0 w-full z-[2000] bg-white/80 backdrop-blur-md shadow-[0_10px_30px_rgba(0,104,95,0.04)]">
@@ -40,13 +40,17 @@ export default function Navbar() {
           </button>
 
           {user ? (
-            <button
-              onClick={logout}
-              className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-caps text-label-caps uppercase border-2 border-surface-container-highest hover:opacity-90 transition-opacity"
-              title="Sign out"
+            <Link
+              to="/profile"
+              className={
+                pathname === "/profile"
+                  ? "w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-caps text-label-caps uppercase border-2 border-primary-fixed-dim hover:opacity-90 transition-opacity"
+                  : "w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-caps text-label-caps uppercase border-2 border-surface-container-highest hover:opacity-90 transition-opacity"
+              }
+              title="Profile"
             >
               {user.username?.[0]?.toUpperCase() || "U"}
-            </button>
+            </Link>
           ) : (
             <Link
               to="/login"
