@@ -116,10 +116,12 @@ export default function Login() {
             </label>
             <input
               className="w-full px-sm py-[12px] rounded-lg bg-surface-container-low border border-transparent focus:bg-surface-container-lowest focus:border-primary focus:ring-0 outline-none transition-all font-body-md text-body-md text-on-surface placeholder:text-secondary/50"
-              placeholder="••••••••"
+              placeholder={isLogin ? "••••••••" : "6-128 characters"}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              minLength={isLogin ? undefined : 6}
+              maxLength={isLogin ? undefined : 128}
               required
             />
           </div>
@@ -131,10 +133,12 @@ export default function Login() {
               </label>
               <input
                 className="w-full px-sm py-[12px] rounded-lg bg-surface-container-low border border-transparent focus:bg-surface-container-lowest focus:border-primary focus:ring-0 outline-none transition-all font-body-md text-body-md text-on-surface placeholder:text-secondary/50"
-                placeholder="••••••••"
+                placeholder="6-128 characters"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={6}
+                maxLength={128}
                 required
               />
             </div>
