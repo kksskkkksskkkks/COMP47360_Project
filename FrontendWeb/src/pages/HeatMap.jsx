@@ -86,7 +86,7 @@ function dateToStep(date) {
 function formatStepLabel(step) {
   const date = stepToDate(step);
   const dayLabel = step < STEPS_PER_DAY ? "Today" : "Tomorrow";
-  const time = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   return `${dayLabel}, ${time}`;
 }
 

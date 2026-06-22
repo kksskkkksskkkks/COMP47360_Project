@@ -15,8 +15,11 @@ const categories = [
 // returned nothing.
 const ACCESSIBLE_FILTER_VALUE = 1;
 
+// Force "en-US" rather than the browser's locale ([]) so times/dates always
+// render in English (e.g. "9:30 AM", "Jun 22") regardless of the visitor's
+// system language settings.
 function formatTime(date) {
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 function dateLabel(date) {
@@ -27,11 +30,11 @@ function dateLabel(date) {
 
   if (sameDay(date, today)) return "Today";
   if (sameDay(date, tomorrow)) return "Tomorrow";
-  return date.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 }
 
 function dateOnlyLabel(date) {
-  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 // Group the flat list of {timeBucket, attractions} slots into day buckets, so
