@@ -13,8 +13,8 @@ import {
   isSessionExpired,
 } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import Pagination from "../components/Pagination";
 import AttractionCard from "../components/AttractionCard";
+import Pagination from "../components/Pagination";
 
 // Activity-stats / favorites response shapes aren't pinned down by a shared
 // DTO doc, so read defensively: try several plausible key spellings and
@@ -753,15 +753,16 @@ export default function Profile() {
       {/* Recent activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
         <section className="flex flex-col gap-sm">
-          <div className="flex items-baseline gap-sm border-b border-outline-variant/30 pb-xs">
-            <h2 className="text-headline-md font-headline-md text-on-surface">Recent Check-Ins</h2>
-            {recentCheckins.length > 0 && (
+          <div className="border-b border-outline-variant/30 pb-xs">
+            {recentCheckins.length > 0 ? (
               <button
                 onClick={() => setCheckinsModalOpen(true)}
-                className="text-primary font-bold text-label-caps font-label-caps uppercase hover:underline"
+                className="text-headline-md font-headline-md text-on-surface hover:text-primary transition-colors"
               >
-                View All
+                Recent Check-Ins
               </button>
+            ) : (
+              <h2 className="text-headline-md font-headline-md text-on-surface">Recent Check-Ins</h2>
             )}
           </div>
           {checkinsLoading ? (
@@ -780,15 +781,16 @@ export default function Profile() {
         </section>
 
         <section className="flex flex-col gap-sm">
-          <div className="flex items-baseline gap-sm border-b border-outline-variant/30 pb-xs">
-            <h2 className="text-headline-md font-headline-md text-on-surface">Recent Ratings</h2>
-            {recentRatings.length > 0 && (
+          <div className="border-b border-outline-variant/30 pb-xs">
+            {recentRatings.length > 0 ? (
               <button
                 onClick={() => setRatingsModalOpen(true)}
-                className="text-primary font-bold text-label-caps font-label-caps uppercase hover:underline"
+                className="text-headline-md font-headline-md text-on-surface hover:text-primary transition-colors"
               >
-                View All
+                Recent Ratings
               </button>
+            ) : (
+              <h2 className="text-headline-md font-headline-md text-on-surface">Recent Ratings</h2>
             )}
           </div>
           {ratingsLoading ? (
