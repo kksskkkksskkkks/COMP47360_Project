@@ -178,7 +178,7 @@ export default function WeatherAssistant() {
       <header>
         <h1 className="font-display-lg text-display-lg text-on-surface">Weather Assistant</h1>
         <p className="text-body-md font-body-md text-secondary">
-          Ask about today's weather in {resolvedLocation} and get outfit, timing, or activity advice.
+          Ask about today's weather in {resolvedLocation} and get outfit or activity advice.
         </p>
       </header>
 
