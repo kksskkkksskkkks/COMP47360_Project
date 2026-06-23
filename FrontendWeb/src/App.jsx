@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Login from "./pages/Login";
@@ -10,6 +11,7 @@ import Recommendations from "./pages/Recommendations";
 import AttractionList from "./pages/AttractionList";
 import AttractionDetail from "./pages/AttractionDetail";
 import WeatherAssistant from "./pages/WeatherAssistant";
+import AdminUsers from "./pages/AdminUsers";
 
 // Leaflet pulls in extra weight that most visitors never need, so it's
 // only loaded when someone actually visits the heat map route.
@@ -101,6 +103,19 @@ export default function App() {
                 <Layout>
                   <WeatherAssistant />
                 </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <Layout>
+                    <AdminUsers />
+                  </Layout>
+                </AdminRoute>
               </ProtectedRoute>
             }
           />

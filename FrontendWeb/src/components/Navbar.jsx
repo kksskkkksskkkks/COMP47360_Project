@@ -1,16 +1,22 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Discover" },
   { to: "/heatmap", label: "Heat Map" },
   { to: "/gems", label: "Gems" },
   { to: "/weather", label: "Weather" },
 ];
 
+const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
+
 export default function Navbar() {
   const { pathname } = useLocation();
   const { user } = useAuth();
+
+  const links = ADMIN_ROLES.includes(user?.role)
+    ? [...baseLinks, { to: "/admin/users", label: "Admin" }]
+    : baseLinks;
 
   return (
     <nav className="fixed top-0 w-full z-[2000] bg-white/80 backdrop-blur-md shadow-[0_10px_30px_rgba(0,104,95,0.04)]">
