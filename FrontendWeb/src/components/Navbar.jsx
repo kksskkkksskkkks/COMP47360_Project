@@ -5,6 +5,7 @@ const links = [
   { to: "/", label: "Discover" },
   { to: "/heatmap", label: "Heat Map" },
   { to: "/gems", label: "Gems" },
+  { to: "/weather", label: "Weather" },
 ];
 
 export default function Navbar() {

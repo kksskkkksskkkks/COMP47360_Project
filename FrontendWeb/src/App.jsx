@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Recommendations from "./pages/Recommendations";
 import AttractionList from "./pages/AttractionList";
 import AttractionDetail from "./pages/AttractionDetail";
+import WeatherAssistant from "./pages/WeatherAssistant";
 
 // Leaflet pulls in extra weight that most visitors never need, so it's
 // only loaded when someone actually visits the heat map route.
@@ -88,6 +89,17 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <Profile />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/weather"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <WeatherAssistant />
                 </Layout>
               </ProtectedRoute>
             }
