@@ -8,8 +8,10 @@ import { resolveImage } from "../lib/image";
 
 // Manhattan, NYC — matches the backend's weather chatbot, which is fixed to
 // this city, and is where the seed attraction data lives.
-const MANHATTAN_CENTER = [40.7588, -73.9851];
-const DEFAULT_ZOOM = 13;
+// const MANHATTAN_CENTER = [40.7588, -73.9851];
+const MANHATTAN_CENTER = [40.767, -73.973];
+// const DEFAULT_ZOOM = 13;
+const DEFAULT_ZOOM = 15;
 
 // Two independent color signals on each marker:
 // - the solid center dot's color = category (what kind of place this is)

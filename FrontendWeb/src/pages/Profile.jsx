@@ -229,7 +229,12 @@ function EditProfileModal({ open, onClose, user, highContrast, onSaved, onSessio
 
               <div className="flex items-center justify-between pt-sm border-t border-outline-variant/30">
                 <div>
-                  <p className="font-body-md text-body-md font-medium text-on-surface">High Contrast Mode</p>
+                  <p className="font-body-md text-body-md font-medium text-on-surface flex items-center gap-xs">
+                    High Contrast Mode
+                    <span className="font-label-caps text-[10px] text-secondary uppercase bg-surface-container-low px-xs py-[2px] rounded-full">
+                      Coming Soon
+                    </span>
+                  </p>
                   <p className="text-secondary text-[13px]">Increases contrast for better readability.</p>
                 </div>
                 <button

@@ -46,3 +46,32 @@
   animation: glow-breathe 2.8s ease-in-out infinite;
 }
 
+/* Brief "ring" wiggle for the notification bell on click — a short,
+   self-terminating animation (triggered by toggling a class in JS, not
+   :hover, since this needs to fire once per click). */
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  15% {
+    transform: rotate(-25deg) scale(1.15);
+  }
+  30% {
+    transform: rotate(20deg) scale(1.15);
+  }
+  45% {
+    transform: rotate(-15deg) scale(1.1);
+  }
+  60% {
+    transform: rotate(10deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.02);
+  }
+}
+.animate-bell-ring {
+  animation: bell-ring 0.7s ease-in-out;
+  transform-origin: top center;
+}
+
