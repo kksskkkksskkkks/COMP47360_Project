@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -6,6 +7,7 @@ const baseLinks = [
   { to: "/heatmap", label: "Heat Map" },
   { to: "/gems", label: "Gems" },
   { to: "/weather", label: "Weather" },
+  { to: "/about", label: "About" },
 ];
 
 const ADMIN_ROLES = ["ADMIN", "SUPERADMIN"];
@@ -17,6 +19,18 @@ export default function Navbar() {
   const links = ADMIN_ROLES.includes(user?.role)
     ? [...baseLinks, { to: "/admin/users", label: "Admin" }]
     : baseLinks;
+
+  // Purely a click animation — no real notifications feature exists yet,
+  // so this doesn't open anything, it's just tactile feedback. Bumping a
+  // counter and keying the icon span on it forces React to mount a brand
+  // new DOM node every click, which guarantees the CSS animation actually
+  // plays from the start every time (toggling a class on the same node
+  // can silently fail to restart if React batches the on/off updates).
+  const [ringCount, setRingCount] = useState(0);
+
+  function handleBellClick() {
+    setRingCount((c) => c + 1);
+  }
 
   return (
     <nav className="fixed top-0 w-full z-[2000] bg-white/80 backdrop-blur-md shadow-[0_10px_30px_rgba(0,104,95,0.04)]">
@@ -42,8 +56,16 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center space-x-sm">
-          <button className="p-xs rounded-full text-secondary hover:text-primary hover:bg-surface-container-low transition-all duration-300">
-            <span className="material-symbols-outlined">notifications</span>
+          <button
+            onClick={handleBellClick}
+            className="p-xs rounded-full text-secondary hover:text-primary hover:bg-surface-container-low transition-all duration-300"
+          >
+            <span
+              key={ringCount}
+              className={`material-symbols-outlined inline-block ${ringCount > 0 ? "animate-bell-ring" : ""}`}
+            >
+              notifications
+            </span>
           </button>
 
           {user ? (

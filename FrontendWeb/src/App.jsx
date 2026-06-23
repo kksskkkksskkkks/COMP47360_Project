@@ -12,6 +12,7 @@ import AttractionList from "./pages/AttractionList";
 import AttractionDetail from "./pages/AttractionDetail";
 import WeatherAssistant from "./pages/WeatherAssistant";
 import AdminUsers from "./pages/AdminUsers";
+import About from "./pages/About";
 
 // Leaflet pulls in extra weight that most visitors never need, so it's
 // only loaded when someone actually visits the heat map route.
@@ -116,6 +117,17 @@ export default function App() {
                     <AdminUsers />
                   </Layout>
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/about"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <About />
+                </Layout>
               </ProtectedRoute>
             }
           />
