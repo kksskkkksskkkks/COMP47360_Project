@@ -75,3 +75,37 @@
   transform-origin: top center;
 }
 
+/* Brief "press" pulse for buttons that don't navigate anywhere (e.g. the
+   footer's placeholder links) — just enough visual feedback to confirm the
+   click landed, since there's nothing else (no page, no panel) to show
+   for it. Same wiggle shape as the notification bell above, just smaller
+   rotation (a whole line of text wiggling at the bell's angle would look
+   excessive) and pivoting from the center instead of the top, since this
+   is a horizontal line of text rather than a hanging icon. */
+@keyframes click-pulse {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  45% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+.animate-click-pulse {
+  animation: click-pulse 0.6s ease-in-out;
+  display: inline-block;
+  transform-origin: top center;
+}
+
