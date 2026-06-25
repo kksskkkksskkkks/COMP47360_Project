@@ -156,7 +156,7 @@ export default function HeatMapScreen() {
             </View>
           </View>
 
-          {errorMsg && <Text className="text-error mb-2">{errorMsg}</Text>}
+          {Boolean(errorMsg) && <Text className="text-error mb-2">{errorMsg}</Text>}
 
           <View
               className="rounded-xl overflow-hidden border border-outline-variant/30 mb-4"
