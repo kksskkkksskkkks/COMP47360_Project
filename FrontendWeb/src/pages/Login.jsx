@@ -2,6 +2,30 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+// No real "forgot password" flow exists yet — this is a plain button (not
+// an <a href="#">, which would still jump/scroll on click) that just gives
+// a wiggle for feedback. Its pulse counter lives in its OWN local state,
+// not the parent Login component's — so when the surrounding `{isLogin &&
+// ...}` block unmounts (switching to Sign Up) and remounts (switching back
+// to Login), this component starts fresh at 0 instead of remembering a
+// nonzero count from before and immediately replaying the animation on
+// the very first render after remounting.
+function ForgotPasswordLink() {
+  const [pulseCount, setPulseCount] = useState(0);
+
+  return (
+    <button
+      type="button"
+      onClick={() => setPulseCount((c) => c + 1)}
+      className="font-body-md text-[13px] text-primary hover:text-primary-fixed-dim transition-colors"
+    >
+      <span key={pulseCount} className={pulseCount > 0 ? "animate-click-pulse" : "inline-block"}>
+        Forgot password?
+      </span>
+    </button>
+  );
+}
+
 export default function Login() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [username, setUsername] = useState("");
@@ -153,9 +177,7 @@ export default function Login() {
 
           {isLogin && (
             <div className="flex justify-end -mt-1">
-              <a className="font-body-md text-[13px] text-primary hover:text-primary-fixed-dim transition-colors" href="#">
-                Forgot password?
-              </a>
+              <ForgotPasswordLink />
             </div>
           )}
 
