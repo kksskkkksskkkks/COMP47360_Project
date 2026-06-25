@@ -8,6 +8,7 @@ import LoginScreen from "../screens/LoginScreen";
 import RecommendationsScreen from "../screens/RecommendationsScreen";
 import AttractionListScreen from "../screens/AttractionListScreen";
 import AttractionDetailScreen from "../screens/AttractionDetailScreen";
+import HeatMapScreen from "../screens/HeatMapScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
@@ -16,6 +17,7 @@ const Tab = createBottomTabNavigator();
 const TAB_ICONS = {
   Discover: "explore",
   Gems: "diamond",
+  HeatMap: "map",
   Profile: "person",
 };
 
@@ -36,6 +38,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Discover" component={RecommendationsScreen} />
       <Tab.Screen name="Gems" component={AttractionListScreen} />
+      <Tab.Screen name="HeatMap" component={HeatMapScreen} options={{ title: "Heat Map" }} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
