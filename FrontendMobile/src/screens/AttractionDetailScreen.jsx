@@ -72,7 +72,7 @@ function normalizeSlot(slot) {
 export default function AttractionDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { id } = route.params;
+  const id = route.params?.id;
   const { user } = useAuth();
 
   const [attraction, setAttraction] = useState(null);
@@ -93,6 +93,7 @@ export default function AttractionDetailScreen() {
   const [liveStatus, setLiveStatus] = useState({ isOpen: null, busynessLevel: null });
 
   useEffect(() => {
+    if (id == null) return;
     let active = true;
     setLoading(true);
     setErrorMsg("");
@@ -134,6 +135,7 @@ export default function AttractionDetailScreen() {
   }, [id, user]);
 
   useEffect(() => {
+    if (id == null) return;
     let active = true;
     setSlotsLoading(true);
     setSlotsError("");
@@ -217,6 +219,19 @@ export default function AttractionDetailScreen() {
     }
   }
 
+  if (id == null) {
+    // route.params being undefined/missing an id means this screen got
+    // mounted without ever being navigated to with { id: ... } — logging
+    // here makes that visible (with a stack trace) instead of crashing
+    // silently, since the actual trigger for this hasn't been confirmed yet.
+    console.warn("[AttractionDetailScreen] mounted with no id in route.params", route);
+    return (
+        <View className="flex-1 items-center justify-center bg-background px-4">
+          <Text className="text-secondary">No attraction selected.</Text>
+        </View>
+    );
+  }
+
   if (loading) {
     return (
         <View className="flex-1 items-center justify-center bg-background">
@@ -241,7 +256,19 @@ export default function AttractionDetailScreen() {
 
   return (
       <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16 }}>
-        <Pressable onPress={() => navigation.goBack()} className="flex-row items-center gap-1 mb-4">
+        <Pressable
+            onPress={() => {
+              // AttractionDetailScreen is a sibling of MainTabs inside the same
+              // Stack.Navigator, so navigating straight to MainTabs and asking
+              // for its Gems tab is the direct, single-step way there — no need
+              // to goBack() first and separately reach for getParent() (that
+              // split into two calls on a navigation object whose underlying
+              // screen was already being torn down by the first call, which is
+              // why it wasn't reliably switching tabs).
+              navigation.navigate("MainTabs", { screen: "Gems" });
+            }}
+            className="flex-row items-center gap-1 mb-4"
+        >
           <MaterialIcons name="arrow-back" size={18} color="#565E74" />
           <Text className="text-label-caps text-secondary uppercase">Back to Gems</Text>
         </Pressable>
