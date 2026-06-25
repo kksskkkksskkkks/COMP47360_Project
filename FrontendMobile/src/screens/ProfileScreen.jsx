@@ -643,23 +643,22 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View className="flex-row gap-3 mb-5">
+        <View className="flex-row items-center gap-4 mb-5 flex-wrap">
           <Pressable
               onPress={() => setEditOpen(true)}
-              className="flex-1 py-2.5 border border-primary rounded-lg items-center"
+              className="px-4 py-2 border border-primary rounded-lg"
           >
-            <Text className="text-primary font-medium">Edit Profile</Text>
+            <Text className="text-primary font-medium text-body-md">Edit Profile</Text>
           </Pressable>
-          <Pressable onPress={() => logout()} className="px-4 py-2.5 items-center justify-center">
-            <Text className="text-secondary font-medium">Log Out</Text>
+          <Pressable onPress={() => logout()}>
+            <Text className="text-secondary font-medium text-body-md">Log Out</Text>
+          </Pressable>
+          <Pressable onPress={handleLogoutAll} disabled={logoutAllBusy}>
+            <Text className="text-error text-body-md" style={logoutAllBusy ? { opacity: 0.6 } : {}}>
+              {logoutAllBusy ? "Signing out everywhere…" : "Log Out Everywhere"}
+            </Text>
           </Pressable>
         </View>
-
-        <Pressable onPress={handleLogoutAll} disabled={logoutAllBusy} className="mb-5">
-          <Text className="text-error text-body-md" style={logoutAllBusy ? { opacity: 0.6 } : {}}>
-            {logoutAllBusy ? "Signing out everywhere…" : "Log Out Everywhere"}
-          </Text>
-        </Pressable>
 
         {/* Activity stats */}
         <View className="flex-row gap-3 mb-6">
