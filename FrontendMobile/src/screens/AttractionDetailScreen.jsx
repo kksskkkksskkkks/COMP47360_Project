@@ -284,46 +284,12 @@ export default function AttractionDetailScreen() {
             <Text className="text-body-md text-secondary mb-4">{attraction.openingHours}</Text>
         )}
 
-        <View className="flex-row gap-2 mb-4" style={{ height: 220 }}>
-          <View style={{ flex: 2, borderRadius: 16, overflow: "hidden" }}>
-            <Image
-                source={{ uri: resolveImage(attraction.imagePath) }}
-                style={{ width: "100%", height: "100%" }}
-                contentFit="cover"
-            />
-          </View>
-          <View style={{ flex: 1, borderRadius: 16, overflow: "hidden", position: "relative" }}>
-            <MapWebView
-                points={[
-                  {
-                    id: attraction.id,
-                    lat: attraction.lat,
-                    lon: attraction.lon,
-                    category: attraction.category,
-                    isOpen: liveStatus.isOpen,
-                    busynessLevel: liveStatus.busynessLevel,
-                  },
-                ]}
-                center={[attraction.lat, attraction.lon]}
-                zoom={15}
-                interactive={false}
-                glowOnly
-                style={{ width: "100%", height: "100%" }}
-            />
-            {/* A WebView/iframe captures every tap itself and never lets it
-              bubble up — wrapping it in a Pressable doesn't work, since the
-              press never reaches that Pressable. This transparent layer
-              sits on top instead, so the tap lands here first. */}
-            <Pressable
-                onPress={() =>
-                    navigation.navigate("MainTabs", {
-                      screen: "HeatMap",
-                      params: { center: [attraction.lat, attraction.lon], zoom: 16 },
-                    })
-                }
-                style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-            />
-          </View>
+        <View style={{ height: 220, borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
+          <Image
+              source={{ uri: resolveImage(attraction.imagePath) }}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="cover"
+          />
         </View>
 
         <View className="flex-row gap-3 mb-6">
@@ -478,6 +444,39 @@ export default function AttractionDetailScreen() {
                 </View>
               </>
           )}
+        </View>
+
+        <View style={{ height:220, borderRadius: 16, overflow: "hidden", position: "relative", marginBottom: 16 }}>
+          <MapWebView
+              points={[
+                {
+                  id: attraction.id,
+                  lat: attraction.lat,
+                  lon: attraction.lon,
+                  category: attraction.category,
+                  isOpen: liveStatus.isOpen,
+                  busynessLevel: liveStatus.busynessLevel,
+                },
+              ]}
+              center={[attraction.lat, attraction.lon]}
+              zoom={15}
+              interactive={false}
+              glowOnly
+              style={{ width: "100%", height: "100%" }}
+          />
+          {/* A WebView/iframe captures every tap itself and never lets it
+            bubble up — wrapping it in a Pressable doesn't work, since the
+            press never reaches that Pressable. This transparent layer
+            sits on top instead, so the tap lands here first. */}
+          <Pressable
+              onPress={() =>
+                  navigation.navigate("MainTabs", {
+                    screen: "HeatMap",
+                    params: { center: [attraction.lat, attraction.lon], zoom: 16 },
+                  })
+              }
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+          />
         </View>
 
         {/* Info + rating */}

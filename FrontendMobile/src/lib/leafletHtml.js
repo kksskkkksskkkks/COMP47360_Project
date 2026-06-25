@@ -67,7 +67,7 @@ export function buildMapHtml({
         if (!${closed}) {
           L.marker([${p.lat}, ${p.lon}], {
             icon: L.divIcon({
-              html: '<div class="${glowOnly ? "glow-breathe" : ""}" style="width:${outerSize}px;height:${outerSize}px;border-radius:50%;background:radial-gradient(circle, ${glowColor}80 0%, ${glowColor}50 30%, ${glowColor}22 60%, ${glowColor}00 100%);"></div>',
+              html: '<div style="width:${outerSize}px;height:${outerSize}px;border-radius:50%;background:radial-gradient(circle, ${glowColor}80 0%, ${glowColor}50 30%, ${glowColor}22 60%, ${glowColor}00 100%);"></div>',
               className: '',
               iconSize: [${outerSize}, ${outerSize}],
               iconAnchor: [${outerSize / 2}, ${outerSize / 2}],
@@ -98,18 +98,6 @@ export function buildMapHtml({
     html, body, #map { height: 100%; margin: 0; padding: 0; background: #eff4ff; }
     .leaflet-popup-content-wrapper { border-radius: 10px; }
     .leaflet-control-attribution { font-size: 9px; }
-    /* There's no hover state on touch devices, so unlike the web version
-       (which only breathes on :hover), this plays continuously — it's the
-       only way for a small, otherwise-static glow to actually draw the eye
-       in a MiniMap-sized container. */
-    @keyframes glow-breathe {
-      0%, 100% { transform: scale(0.85); opacity: 0.8; }
-      50% { transform: scale(1.08); opacity: 1; }
-    }
-    .glow-breathe {
-      animation: glow-breathe 2.8s ease-in-out infinite;
-      transform-origin: center;
-    }
   </style>
 </head>
 <body>
