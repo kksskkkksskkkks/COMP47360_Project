@@ -155,7 +155,7 @@ export default function RecommendationsScreen() {
           className="self-start px-4 py-2 rounded-full bg-primary flex-row items-center gap-2 active:opacity-90"
           style={loading ? { opacity: 0.6 } : {}}
         >
-          <MaterialCommunityIcons name="diamond-stone" size={13.5} color="#fff" />
+          <MaterialCommunityIcons name="diamond-stone" size={14} color="#fff" />
           <Text className="text-on-primary text-label-caps uppercase font-semibold">
             {loading ? "Loading…" : "Get Recommendations"}
           </Text>
