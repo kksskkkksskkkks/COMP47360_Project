@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import {
   attractionApi,
@@ -371,7 +371,7 @@ export default function AttractionDetailScreen() {
                                 height: (barHeightPct(slot) / 100) * CHART_HEIGHT,
                                 backgroundColor: barColor(slot),
                                 borderRadius: 2,
-                                borderTopWidth: slot.isGem ? 2 : 0,
+                                borderTopWidth: slot.isOpen !== false && slot.isGem ? 2 : 0,
                                 borderTopColor: "#00685F",
                               }}
                           />
@@ -478,8 +478,8 @@ export default function AttractionDetailScreen() {
           <View className="flex-row gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
                 <Pressable key={star} disabled={!user || ratingBusy} onPress={() => submitRating(star)}>
-                  <MaterialIcons
-                      name={star <= myRating ? "star" : "star-border"}
+                  <MaterialCommunityIcons
+                      name={star <= myRating ? "star" : "star-outline"}
                       size={28}
                       color={star <= myRating ? "#00685F" : "#bcc9c6"}
                   />

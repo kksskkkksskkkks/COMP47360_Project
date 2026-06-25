@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { View, ActivityIndicator } from "react-native";
 import { useAuth } from "../context/AuthContext";
 
@@ -26,9 +26,12 @@ function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: "#00685F",
         tabBarInactiveTintColor: "#565E74",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name={TAB_ICONS[route.name]} size={size} color={color} />
-        ),
+        tabBarIcon: ({ color, size }) =>
+          route.name === "Gems" ? (
+            <MaterialCommunityIcons name="diamond-stone" size={size} color={color} />
+          ) : (
+            <MaterialIcons name={TAB_ICONS[route.name]} size={size} color={color} />
+          ),
       })}
     >
       <Tab.Screen name="Discover" component={RecommendationsScreen} />

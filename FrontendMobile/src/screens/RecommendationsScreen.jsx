@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, FlatList, RefreshControl, ActivityIndicator } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { recommendationApi, readBoolField } from "../lib/api";
 import AttractionCard from "../components/AttractionCard";
 import FilterBar from "../components/FilterBar";
@@ -155,7 +155,7 @@ export default function RecommendationsScreen() {
           className="self-start px-4 py-2 rounded-full bg-primary flex-row items-center gap-2 active:opacity-90"
           style={loading ? { opacity: 0.6 } : {}}
         >
-          <MaterialIcons name="diamond" size={16} color="#fff" />
+          <MaterialCommunityIcons name="diamond-stone" size={13.5} color="#fff" />
           <Text className="text-on-primary text-label-caps uppercase font-semibold">
             {loading ? "Loading…" : "Get Recommendations"}
           </Text>
