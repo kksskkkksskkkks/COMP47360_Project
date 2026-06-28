@@ -78,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
             throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "Current password is incorrect");
+                    HttpStatus.FORBIDDEN, "Current password is incorrect");
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));

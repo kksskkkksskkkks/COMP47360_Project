@@ -36,10 +36,10 @@ public class AttractionServiceImpl implements AttractionService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AttractionDTO> search(String keyword, String category, Integer minWheelchair, Pageable pageable) {
+    public Page<AttractionDTO> search(String keyword, List<String> categories, Integer minWheelchair, Pageable pageable) {
         Specification<Attraction> spec = Specification
                 .where(AttractionSpec.hasKeyword(keyword))
-                .and(AttractionSpec.hasCategory(category))
+                .and(AttractionSpec.hasCategory(categories))
                 .and(AttractionSpec.hasWheelchairAtLeast(minWheelchair));
 
         return attractionRepository.findAll(spec, pageable)

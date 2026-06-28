@@ -4,6 +4,7 @@ import com.gemfinder.admin.dto.UserDTO;
 //import com.gemfinder.auth.entity.User.Role;
 import com.gemfinder.admin.service.UserService;
 import com.gemfinder.enums.Role;
+import com.gemfinder.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,20 +25,20 @@ public class UserController {
     // GET /api/users
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public Page<UserDTO> getAll(
+    public ApiResponse<Page<UserDTO>> getAll(
             @RequestParam(required = false) Boolean isActive,
             @PageableDefault(size = 20) Pageable pageable) {
         if (isActive != null) {
-            return userService.getByActiveStatus(isActive, pageable);
+            return ApiResponse.success(userService.getByActiveStatus(isActive, pageable));
         }
-        return userService.getAll(pageable);
+        return ApiResponse.success(userService.getAll(pageable));
     }
 
     // GET /api/users/{id}
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public UserDTO getById(@PathVariable Long id) {
-        return userService.getById(id);
+    public ApiResponse<UserDTO> getById(@PathVariable Long id) {
+        return ApiResponse.success(userService.getById(id));
     }
 
     // ── Admin: write ───────────────────────────────────────────────────
@@ -48,10 +49,10 @@ public class UserController {
     // blocks changing another SUPERADMIN's role.
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('SUPERADMIN')")
-    public UserDTO updateRole(@PathVariable Long id,
+    public ApiResponse<UserDTO> updateRole(@PathVariable Long id,
                               @RequestParam Role role,
                               @RequestAttribute("role") String actorRole) {
-        return userService.updateRole(id, role, Role.valueOf(actorRole));
+        return ApiResponse.success(userService.updateRole(id, role, Role.valueOf(actorRole)));
     }
 
     // PATCH /api/users/{id}/deactivate
@@ -59,18 +60,18 @@ public class UserController {
     // SUPERADMIN can't touch SUPERADMIN) are enforced in UserServiceImpl.
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public UserDTO deactivate(@PathVariable Long id,
+    public ApiResponse<UserDTO> deactivate(@PathVariable Long id,
                               @RequestAttribute("role") String actorRole) {
-        return userService.deactivate(id, Role.valueOf(actorRole));
+        return ApiResponse.success(userService.deactivate(id, Role.valueOf(actorRole)));
     }
 
     // PATCH /api/users/{id}/activate
     // Same target-role restrictions as deactivate(), enforced in UserServiceImpl.
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public UserDTO activate(@PathVariable Long id,
+    public ApiResponse<UserDTO> activate(@PathVariable Long id,
                             @RequestAttribute("role") String actorRole) {
-        return userService.activate(id, Role.valueOf(actorRole));
+        return ApiResponse.success(userService.activate(id, Role.valueOf(actorRole)));
     }
 
     // Note: self-service profile edits (username/email/high-contrast) and

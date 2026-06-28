@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: "FILL" 0;
+}
+
+/* Material Symbols is a variable font — changing the icon's ligature name
+   alone (e.g. "favorite" vs "favorite_border") doesn't make it solid. The
+   FILL axis is what actually switches an icon from outline to filled. */
+.material-symbols-outlined.icon-fill {
+  font-variation-settings: "FILL" 1;
+}
+
+/* The mini map's busyness "glow" halo — slow expand/contract + opacity
+   pulse, like a heartbeat. transform-origin stays centered so it breathes
+   outward symmetrically instead of drifting. Only plays while hovering the
+   mini map (.minimap-root) — sits still otherwise. */
+@keyframes glow-breathe {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+.glow-breathe {
+  transform-origin: center;
+}
+.minimap-root:hover .glow-breathe {
+  animation: glow-breathe 2.8s ease-in-out infinite;
+}
+
+/* Brief "ring" wiggle for the notification bell on click — a short,
+   self-terminating animation (triggered by toggling a class in JS, not
+   :hover, since this needs to fire once per click). */
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  15% {
+    transform: rotate(-25deg) scale(1.15);
+  }
+  30% {
+    transform: rotate(20deg) scale(1.15);
+  }
+  45% {
+    transform: rotate(-15deg) scale(1.1);
+  }
+  60% {
+    transform: rotate(10deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.02);
+  }
+}
+.animate-bell-ring {
+  animation: bell-ring 0.7s ease-in-out;
+  transform-origin: top center;
+}
+
+/* Brief "press" pulse for buttons that don't navigate anywhere (e.g. the
+   footer's placeholder links) — just enough visual feedback to confirm the
+   click landed, since there's nothing else (no page, no panel) to show
+   for it. Same wiggle shape as the notification bell above, just smaller
+   rotation (a whole line of text wiggling at the bell's angle would look
+   excessive) and pivoting from the center instead of the top, since this
+   is a horizontal line of text rather than a hanging icon. */
+@keyframes click-pulse {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  45% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+.animate-click-pulse {
+  animation: click-pulse 0.6s ease-in-out;
+  display: inline-block;
+  transform-origin: top center;
+}
+

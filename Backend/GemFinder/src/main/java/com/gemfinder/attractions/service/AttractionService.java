@@ -20,10 +20,10 @@ public interface AttractionService {
      * All parameters are optional and can be combined freely.
      *
      * @param keyword   partial name match (case-insensitive), or null
-     * @param category  exact category match, or null
+     * @param categories one or more exact category values (matched via IN), or null/empty
      * @param minWheelchair minimum wheelchair level (0/1/2), or null
      */
-    Page<AttractionDTO> search(String keyword, String category, Integer minWheelchair, Pageable pageable);
+    Page<AttractionDTO> search(String keyword, List<String> categories, Integer minWheelchair, Pageable pageable);
 
     /**
      * Returns all attractions in the given zone without pagination.

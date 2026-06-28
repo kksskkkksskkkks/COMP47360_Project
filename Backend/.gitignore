@@ -3,3 +3,5 @@ target/
 
 
 GemFinder/src/main/resources/application.yml
+
+GemFinder/src/main/resources/static/images

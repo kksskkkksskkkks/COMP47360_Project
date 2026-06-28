@@ -24,11 +24,13 @@ public class AttractionController {
         return ApiResponse.success(attractionService.getById(id));
     }
 
-    // GET /api/attractions?keyword=xxx&category=museum&wheelchair=1&page=0&size=20
+    // GET /api/attractions?keyword=xxx&category=Park&category=Museum&wheelchair=1&page=0&size=20
+    // Param name stays "category" (singular), but now accepts multiple
+    // repeated params and binds them into a List<String>.
     @GetMapping
     public ApiResponse<Page<AttractionDTO>> search(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) List<String> category,
             @RequestParam(required = false) Integer wheelchair,
             @PageableDefault(size = 20) Pageable pageable) {
         return ApiResponse.success(attractionService.search(keyword, category, wheelchair, pageable));
