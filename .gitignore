@@ -31,7 +31,8 @@ ML/catboost_info/
 #Data
 Data/describe/
 Data/output/
-
+Data/create_real_accounts.py
+Data/create_placeholder_users.py
 
 config.py
 
@@ -39,3 +40,26 @@ config.py
 #others
 ModelServing/schema.sql
 others/sprint1.png
+
+
+
+
+deploy/deployCloud/backend/GemFinder-1.0-SNAPSHOT.jar
+deploy/deployCloud/frontend/dist
+deploy/deployCloud/mysql_data
+deploy/deployCloud/ollama_data
+deploy/deployCloud/nginx/ssl
+deploy/deployCloud/prediction/ML/output
+deploy/deployCloud/prediction/script/output/attractions_final_v2.csv
+deploy/deployCloud/prediction/script
+
+
+deploy/deployLocal/backend/GemFinder-1.0-SNAPSHOT.jar
+deploy/deployLocal/frontend/dist
+deploy/deployLocal/mysql_data
+deploy/deployLocal/ollama_data
+deploy/deployLocal/nginx/ssl
+deploy/deployLocal/prediction/ML/output
+deploy/deployLocal/prediction/script/output/attractions_final_v2.csv
+deploy/deployLocal/prediction/script
+

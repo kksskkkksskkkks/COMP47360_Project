@@ -42,13 +42,24 @@ public class RecommendationServiceImpl implements RecommendationService {
         LocalDate today    = LocalDate.now();
         LocalDate tomorrow = today.plusDays(1);
 
-        List<GemPeriod> periods = fetchPeriods(today, tomorrow, categories, wheelchair);
+        List<RecommendationSlotDTO> result = new ArrayList<>();
+        result.addAll(getRecommendationsForDate(today, categories, wheelchair));
+        result.addAll(getRecommendationsForDate(tomorrow, categories, wheelchair));
+        return result;
+    }
+
+    /** Builds recommendations for a single day with its own independent dedup set. */
+    private List<RecommendationSlotDTO> getRecommendationsForDate(LocalDate date,
+                                                                  List<String> categories,
+                                                                  Integer wheelchair) {
+        List<GemPeriod> periods = fetchPeriods(date, categories, wheelchair);
 
         Map<LocalDateTime, List<GemPeriod>> bySlot = periods.stream()
                 .collect(Collectors.groupingBy(GemPeriod::getStartTime,
                         LinkedHashMap::new, Collectors.toList()));
 
-        Set<Long> usedIds = new HashSet<>();
+        Set<Long> usedIds = new HashSet<>(); // reset per day — dedup only within this day
+
         List<RecommendationSlotDTO> result = new ArrayList<>();
 
         for (Map.Entry<LocalDateTime, List<GemPeriod>> entry : bySlot.entrySet()) {
@@ -166,9 +177,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         return lookup;
     }
 
-    private List<GemPeriod> fetchPeriods(LocalDate today, LocalDate tomorrow,
+    private List<GemPeriod> fetchPeriods(LocalDate date,
                                          List<String> categories, Integer wheelchair) {
-        List<LocalDate> dates = List.of(today, tomorrow);
+        List<LocalDate> dates = List.of(date);
 
         if (categories != null && !categories.isEmpty() && wheelchair != null) {
             return gemPeriodRepository.findByForecastDatesAndCategoriesAndWheelchair(
