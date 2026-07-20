@@ -1,13 +1,17 @@
 {
   "expo": {
     "name": "gemfinder-mobile",
-    "slug": "gemfinder-mobile",
+    "slug": "gem-finder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.gemfinder-mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,6 +23,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ca6ecd57-492b-4772-a831-9ea506380ea2"
+      }
+    },
+    "owner": "kousans-team"
   }
 }

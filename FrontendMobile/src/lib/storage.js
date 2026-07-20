@@ -33,6 +33,35 @@ const webStorage = {
   },
 };
 
-const storage = Platform.OS === "web" ? webStorage : AsyncStorage;
+// @react-native-async-storage/async-storage v3 renamed the batch methods:
+//   multiGet    -> getMany   (and returns a Record<string, string|null> instead
+//                              of an array of [key, value] pairs)
+//   multiSet    -> setMany   (and takes a Record<string, string> instead of an
+//                              array of [key, value] pairs)
+//   multiRemove -> removeMany
+// Rather than touch every call site, wrap the new API so it keeps exposing
+// the old multiGet/multiSet/multiRemove names AND the old array-of-pairs
+// shape that the rest of this app (AuthContext, api.js) already expects.
+const nativeStorage = {
+  getItem: (key) => AsyncStorage.getItem(key),
+  setItem: (key, value) => AsyncStorage.setItem(key, value),
+  removeItem: (key) => AsyncStorage.removeItem(key),
+  async multiGet(keys) {
+    const result = await AsyncStorage.getMany(keys);
+    // Normalize to the old [key, value][] shape regardless of whether
+    // getMany returns a Record or already an array of pairs.
+    if (Array.isArray(result)) return result;
+    return keys.map((k) => [k, result?.[k] ?? null]);
+  },
+  async multiSet(pairs) {
+    const entries = Object.fromEntries(pairs);
+    return AsyncStorage.setMany(entries);
+  },
+  async multiRemove(keys) {
+    return AsyncStorage.removeMany(keys);
+  },
+};
+
+const storage = Platform.OS === "web" ? webStorage : nativeStorage;
 
 export default storage;
