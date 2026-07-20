@@ -12,7 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
     authApi,
     activityStatsApi,
@@ -472,94 +472,96 @@ export default function ProfileScreen() {
     const [ratingsModalOpen, setRatingsModalOpen] = useState(false);
     const [logoutAllBusy, setLogoutAllBusy] = useState(false);
 
-    useEffect(() => {
-        if (!user) return;
-        let active = true;
+    useFocusEffect(
+        useCallback(() => {
+            if (!user) return;
+            let active = true;
 
-        activityStatsApi
-            .get(user.id)
-            .then((res) => active && setStats(res.data))
-            .catch(() => {})
-            .finally(() => active && setStatsLoading(false));
+            activityStatsApi
+                .get(user.id)
+                .then((res) => active && setStats(res.data))
+                .catch(() => {})
+                .finally(() => active && setStatsLoading(false));
 
-        favoriteApi
-            .list(user.id)
-            .then((res) => {
-                if (!active) return;
-                const favs = extractList(res.data);
-                if (favs.length === 0) return [[], []];
-                return Promise.all([
-                    Promise.all(
-                        favs.map((f) =>
+            favoriteApi
+                .list(user.id)
+                .then((res) => {
+                    if (!active) return;
+                    const favs = extractList(res.data);
+                    if (favs.length === 0) return [[], []];
+                    return Promise.all([
+                        Promise.all(
+                            favs.map((f) =>
+                                attractionApi
+                                    .detail(f.attractionId)
+                                    .then((r) => r.data)
+                                    .catch(() => null)
+                            )
+                        ),
+                        mapApi
+                            .attractions(currentSnapshotTimeBucket())
+                            .then((r) => r.data || [])
+                            .catch(() => []),
+                    ]);
+                })
+                .then(([attractions, snapshot]) => {
+                    if (!active) return;
+                    const statusMap = {};
+                    (snapshot || []).forEach((p) => {
+                        statusMap[p.id] = {
+                            isOpen: readBoolField(p, "isOpen", "open"),
+                            busynessLevel: p.busynessLevel,
+                        };
+                    });
+                    setFavorites((attractions || []).filter(Boolean));
+                    setFavoriteStatusById(statusMap);
+                })
+                .catch((err) => active && setFavoritesError(err.response?.data?.message || "Failed to load favorites."))
+                .finally(() => active && setFavoritesLoading(false));
+
+            checkinApi
+                .listByUser(user.id, { size: 5, sort: "visitedAt,desc" })
+                .then((res) => {
+                    if (!active) return;
+                    const list = extractList(res.data);
+                    if (list.length === 0) return [];
+                    return Promise.all(
+                        list.map((c) =>
                             attractionApi
-                                .detail(f.attractionId)
-                                .then((r) => r.data)
-                                .catch(() => null)
+                                .detail(c.attractionId)
+                                .then((r) => ({ ...c, attraction: r.data }))
+                                .catch(() => ({ ...c, attraction: null }))
                         )
-                    ),
-                    mapApi
-                        .attractions(currentSnapshotTimeBucket())
-                        .then((r) => r.data || [])
-                        .catch(() => []),
-                ]);
-            })
-            .then(([attractions, snapshot]) => {
-                if (!active) return;
-                const statusMap = {};
-                (snapshot || []).forEach((p) => {
-                    statusMap[p.id] = {
-                        isOpen: readBoolField(p, "isOpen", "open"),
-                        busynessLevel: p.busynessLevel,
-                    };
-                });
-                setFavorites((attractions || []).filter(Boolean));
-                setFavoriteStatusById(statusMap);
-            })
-            .catch((err) => active && setFavoritesError(err.response?.data?.message || "Failed to load favorites."))
-            .finally(() => active && setFavoritesLoading(false));
+                    );
+                })
+                .then((items) => active && setRecentCheckins(items || []))
+                .catch(() => {})
+                .finally(() => active && setCheckinsLoading(false));
 
-        checkinApi
-            .listByUser(user.id, { size: 5, sort: "visitedAt,desc" })
-            .then((res) => {
-                if (!active) return;
-                const list = extractList(res.data);
-                if (list.length === 0) return [];
-                return Promise.all(
-                    list.map((c) =>
-                        attractionApi
-                            .detail(c.attractionId)
-                            .then((r) => ({ ...c, attraction: r.data }))
-                            .catch(() => ({ ...c, attraction: null }))
-                    )
-                );
-            })
-            .then((items) => active && setRecentCheckins(items || []))
-            .catch(() => {})
-            .finally(() => active && setCheckinsLoading(false));
+            ratingApi
+                .listByUser(user.id, { size: 5, sort: "updatedAt,desc" })
+                .then((res) => {
+                    if (!active) return;
+                    const list = extractList(res.data);
+                    if (list.length === 0) return [];
+                    return Promise.all(
+                        list.map((r) =>
+                            attractionApi
+                                .detail(r.attractionId)
+                                .then((res2) => ({ ...r, attraction: res2.data }))
+                                .catch(() => ({ ...r, attraction: null }))
+                        )
+                    );
+                })
+                .then((items) => active && setRecentRatings(items || []))
+                .catch(() => {})
+                .finally(() => active && setRatingsLoading(false));
 
-        ratingApi
-            .listByUser(user.id, { size: 5, sort: "updatedAt,desc" })
-            .then((res) => {
-                if (!active) return;
-                const list = extractList(res.data);
-                if (list.length === 0) return [];
-                return Promise.all(
-                    list.map((r) =>
-                        attractionApi
-                            .detail(r.attractionId)
-                            .then((res2) => ({ ...r, attraction: res2.data }))
-                            .catch(() => ({ ...r, attraction: null }))
-                    )
-                );
-            })
-            .then((items) => active && setRecentRatings(items || []))
-            .catch(() => {})
-            .finally(() => active && setRatingsLoading(false));
-
-        return () => {
-            active = false;
-        };
-    }, [user]);
+            return () => {
+                active = false;
+            };
+        }, [user])
+    );
 
     // Paginated fetchers for the "View All" modals — same hydration approach
     // (attractionId -> attractionApi.detail) as the 5-item preview lists use,

@@ -380,9 +380,24 @@ export default function AttractionDetailScreen() {
                           <View key={idx} style={{ flex: 1, alignItems: "center" }}>
                             {isNow && (
                                 <>
-                                  <Text style={{ fontSize: 9, fontWeight: "bold", color: "#0b1c30", marginBottom: 2 }}>
-                                    NOW
-                                  </Text>
+                                  <View
+                                      style={{
+                                        position: "absolute",
+                                        top: -14,
+                                        left: "50%",
+                                        marginLeft: -16,
+                                        width: 32,
+                                        alignItems: "center",
+                                        zIndex: 2,
+                                      }}
+                                  >
+                                    <Text
+                                        numberOfLines={1}
+                                        style={{ fontSize: 9, fontWeight: "bold", color: "#0b1c30" }}
+                                    >
+                                      NOW
+                                    </Text>
+                                  </View>
                                   <View
                                       style={{
                                         width: "66%",

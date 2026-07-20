@@ -36,10 +36,22 @@ export default function AttractionListScreen() {
     );
   }
 
-  // Reset back to the first page whenever a filter changes.
+  // Whenever a filter changes, reset to page 0 and load in the same effect
+  // pass (rather than two separate effects) — otherwise the "load" effect
+  // can fire once with the *old* page number before the "reset page" effect's
+  // setPage(0) has taken effect, briefly requesting a stale/out-of-range page
+  // with the new filters and appending mismatched (sometimes empty) results.
   useEffect(() => {
     setPage(0);
+    loadPage({ pageToLoad: 0, append: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategories, accessibleOnly, search]);
+
+  useEffect(() => {
+    if (page === 0) return; // already handled by the effect above
+    loadPage({ pageToLoad: page, append: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   function loadPage({ pageToLoad, append, isRefresh = false }) {
     if (append) setLoadingMore(true);
@@ -84,11 +96,6 @@ export default function AttractionListScreen() {
         });
   }
 
-  useEffect(() => {
-    loadPage({ pageToLoad: page, append: page > 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategories, accessibleOnly, search, page]);
-
   function handleEndReached() {
     if (loadingMore || loading || page + 1 >= totalPages) return;
     setPage((p) => p + 1);
@@ -127,7 +134,7 @@ export default function AttractionListScreen() {
           />
         </View>
 
-        {loading ? (
+        {loading && attractions.length === 0 ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator color="#00685F" />
             </View>
@@ -143,7 +150,16 @@ export default function AttractionListScreen() {
                 }
                 onEndReachedThreshold={0.4}
                 onEndReached={handleEndReached}
-                ListEmptyComponent={<Text className="text-secondary">No locations match these filters.</Text>}
+                ListHeaderComponent={
+                  loading ? (
+                      <View className="py-3">
+                        <ActivityIndicator color="#00685F" />
+                      </View>
+                  ) : null
+                }
+                ListEmptyComponent={
+                  loading ? null : <Text className="text-secondary">No locations match these filters.</Text>
+                }
                 ListFooterComponent={
                   loadingMore ? (
                       <View className="py-4">
