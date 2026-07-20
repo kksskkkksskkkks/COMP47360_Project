@@ -72,6 +72,10 @@ export default function HeatMapScreen() {
     const [points, setPoints] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
+    // Disabled while the user's finger is on the map, so panning/zooming the
+    // Leaflet map inside the WebView doesn't also drag the outer page's
+    // ScrollView — both would otherwise fight over the same touch gesture.
+    const [scrollEnabled, setScrollEnabled] = useState(true);
 
     const timeBucket = useMemo(() => toLocalDateTimeString(stepToDate(sliderStep)), [sliderStep]);
 
@@ -119,7 +123,7 @@ export default function HeatMapScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }} scrollEnabled={scrollEnabled}>
                 <Text className="text-display-lg text-on-surface font-bold mb-2">Crowd Heat Map</Text>
                 <Text className="text-body-md text-secondary mb-4">
                     Live snapshot of how busy each location is right now.
@@ -162,6 +166,9 @@ export default function HeatMapScreen() {
                 <View
                     className="rounded-xl overflow-hidden border border-outline-variant/30 mb-4"
                     style={{ height: 420 }}
+                    onTouchStart={() => setScrollEnabled(false)}
+                    onTouchEnd={() => setScrollEnabled(true)}
+                    onTouchCancel={() => setScrollEnabled(true)}
                 >
                     {loading && (
                         <View
