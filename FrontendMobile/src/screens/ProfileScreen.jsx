@@ -10,6 +10,7 @@ import {
     Switch,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -626,178 +627,180 @@ export default function ProfileScreen() {
     const ratingsCount = pick(stats, ["ratingCount"], null);
 
     return (
-        <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16 }}>
-            <View className="flex-row items-center gap-4 mb-4">
-                <View className="w-16 h-16 rounded-full bg-primary items-center justify-center">
-                    <Text className="text-headline-md text-on-primary font-bold">
-                        {user.username?.[0]?.toUpperCase() || "U"}
-                    </Text>
-                </View>
-                <View className="flex-1">
-                    <Text className="text-headline-lg text-on-surface font-bold" numberOfLines={1}>
-                        {user.username}
-                    </Text>
-                    <Text className="text-body-md text-secondary" numberOfLines={1}>
-                        {user.email}
-                    </Text>
-                </View>
-            </View>
-
-            <View className="flex-row items-center gap-4 mb-5 flex-wrap">
-                <Pressable
-                    onPress={() => setEditOpen(true)}
-                    className="px-4 py-2 border border-primary rounded-lg"
-                >
-                    <Text className="text-primary font-medium text-body-md">Edit Profile</Text>
-                </Pressable>
-                <Pressable onPress={() => logout()}>
-                    <Text className="text-secondary font-medium text-body-md">Log Out</Text>
-                </Pressable>
-                <Pressable onPress={handleLogoutAll} disabled={logoutAllBusy}>
-                    <Text className="text-error text-body-md" style={logoutAllBusy ? { opacity: 0.6 } : {}}>
-                        {logoutAllBusy ? "Signing out everywhere…" : "Log Out Everywhere"}
-                    </Text>
-                </Pressable>
-            </View>
-
-            {/* Activity stats */}
-            <View className="flex-row gap-3 mb-6">
-                {[
-                    { label: "Favorites", value: favoritesCount, icon: "favorite" },
-                    { label: "Visited", value: visitedPlaceCount, icon: "check-circle" },
-                    { label: "Ratings", value: ratingsCount, icon: "star" },
-                ].map((stat) => (
-                    <View
-                        key={stat.label}
-                        className="flex-1 bg-surface-container-lowest rounded-xl p-3 items-center gap-1"
-                        style={{ shadowColor: "#00685F", shadowOpacity: 0.04, shadowRadius: 12, elevation: 1 }}
-                    >
-                        <MaterialIcons name={stat.icon} size={22} color="#00685F" />
-                        <Text className="text-stats-numeric text-on-surface font-semibold">
-                            {statsLoading ? "—" : stat.value ?? "—"}
+        <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+            <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
+                <View className="flex-row items-center gap-4 mb-4">
+                    <View className="w-16 h-16 rounded-full bg-primary items-center justify-center">
+                        <Text className="text-headline-md text-on-primary font-bold">
+                            {user.username?.[0]?.toUpperCase() || "U"}
                         </Text>
-                        <Text className="text-[10px] text-secondary uppercase">{stat.label}</Text>
                     </View>
-                ))}
-            </View>
+                    <View className="flex-1">
+                        <Text className="text-headline-lg text-on-surface font-bold" numberOfLines={1}>
+                            {user.username}
+                        </Text>
+                        <Text className="text-body-md text-secondary" numberOfLines={1}>
+                            {user.email}
+                        </Text>
+                    </View>
+                </View>
 
-            {/* Recent check-ins */}
-            <View className="mb-6">
-                <View className="mb-3 pb-2 border-b border-outline-variant/30">
-                    {recentCheckins.length > 0 ? (
-                        <Pressable onPress={() => setCheckinsModalOpen(true)} className="self-start">
+                <View className="flex-row items-center gap-4 mb-5 flex-wrap">
+                    <Pressable
+                        onPress={() => setEditOpen(true)}
+                        className="px-4 py-2 border border-primary rounded-lg"
+                    >
+                        <Text className="text-primary font-medium text-body-md">Edit Profile</Text>
+                    </Pressable>
+                    <Pressable onPress={() => logout()}>
+                        <Text className="text-secondary font-medium text-body-md">Log Out</Text>
+                    </Pressable>
+                    <Pressable onPress={handleLogoutAll} disabled={logoutAllBusy}>
+                        <Text className="text-error text-body-md" style={logoutAllBusy ? { opacity: 0.6 } : {}}>
+                            {logoutAllBusy ? "Signing out everywhere…" : "Log Out Everywhere"}
+                        </Text>
+                    </Pressable>
+                </View>
+
+                {/* Activity stats */}
+                <View className="flex-row gap-3 mb-6">
+                    {[
+                        { label: "Favorites", value: favoritesCount, icon: "favorite" },
+                        { label: "Visited", value: visitedPlaceCount, icon: "check-circle" },
+                        { label: "Ratings", value: ratingsCount, icon: "star" },
+                    ].map((stat) => (
+                        <View
+                            key={stat.label}
+                            className="flex-1 bg-surface-container-lowest rounded-xl p-3 items-center gap-1"
+                            style={{ shadowColor: "#00685F", shadowOpacity: 0.04, shadowRadius: 12, elevation: 1 }}
+                        >
+                            <MaterialIcons name={stat.icon} size={22} color="#00685F" />
+                            <Text className="text-stats-numeric text-on-surface font-semibold">
+                                {statsLoading ? "—" : stat.value ?? "—"}
+                            </Text>
+                            <Text className="text-[10px] text-secondary uppercase">{stat.label}</Text>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Recent check-ins */}
+                <View className="mb-6">
+                    <View className="mb-3 pb-2 border-b border-outline-variant/30">
+                        {recentCheckins.length > 0 ? (
+                            <Pressable onPress={() => setCheckinsModalOpen(true)} className="self-start">
+                                <Text className="text-headline-md text-on-surface">Recent Check-Ins</Text>
+                            </Pressable>
+                        ) : (
                             <Text className="text-headline-md text-on-surface">Recent Check-Ins</Text>
-                        </Pressable>
+                        )}
+                    </View>
+                    {checkinsLoading ? (
+                        <ActivityIndicator color="#00685F" />
+                    ) : recentCheckins.length === 0 ? (
+                        <Text className="text-secondary text-[13px]">No check-ins yet.</Text>
                     ) : (
-                        <Text className="text-headline-md text-on-surface">Recent Check-Ins</Text>
+                        recentCheckins.map((c) => (
+                            <CheckinRow
+                                key={c.id}
+                                c={c}
+                                onPress={() => c.attraction && navigation.navigate("AttractionDetail", { id: c.attraction.id })}
+                            />
+                        ))
                     )}
                 </View>
-                {checkinsLoading ? (
-                    <ActivityIndicator color="#00685F" />
-                ) : recentCheckins.length === 0 ? (
-                    <Text className="text-secondary text-[13px]">No check-ins yet.</Text>
-                ) : (
-                    recentCheckins.map((c) => (
-                        <CheckinRow
-                            key={c.id}
-                            c={c}
-                            onPress={() => c.attraction && navigation.navigate("AttractionDetail", { id: c.attraction.id })}
-                        />
-                    ))
-                )}
-            </View>
 
-            {/* Recent ratings */}
-            <View className="mb-6">
-                <View className="mb-3 pb-2 border-b border-outline-variant/30">
-                    {recentRatings.length > 0 ? (
-                        <Pressable onPress={() => setRatingsModalOpen(true)} className="self-start">
+                {/* Recent ratings */}
+                <View className="mb-6">
+                    <View className="mb-3 pb-2 border-b border-outline-variant/30">
+                        {recentRatings.length > 0 ? (
+                            <Pressable onPress={() => setRatingsModalOpen(true)} className="self-start">
+                                <Text className="text-headline-md text-on-surface">Recent Ratings</Text>
+                            </Pressable>
+                        ) : (
                             <Text className="text-headline-md text-on-surface">Recent Ratings</Text>
-                        </Pressable>
+                        )}
+                    </View>
+                    {ratingsLoading ? (
+                        <ActivityIndicator color="#00685F" />
+                    ) : recentRatings.length === 0 ? (
+                        <Text className="text-secondary text-[13px]">No ratings yet.</Text>
                     ) : (
-                        <Text className="text-headline-md text-on-surface">Recent Ratings</Text>
+                        recentRatings.map((r) => (
+                            <RatingRow
+                                key={r.id}
+                                r={r}
+                                onPress={() => r.attraction && navigation.navigate("AttractionDetail", { id: r.attraction.id })}
+                            />
+                        ))
                     )}
                 </View>
-                {ratingsLoading ? (
-                    <ActivityIndicator color="#00685F" />
-                ) : recentRatings.length === 0 ? (
-                    <Text className="text-secondary text-[13px]">No ratings yet.</Text>
-                ) : (
-                    recentRatings.map((r) => (
+
+                {/* Favorites */}
+                <View>
+                    <Text className="text-headline-md text-on-surface mb-3">Your Favorites</Text>
+                    {favoritesLoading ? (
+                        <ActivityIndicator color="#00685F" />
+                    ) : favoritesError ? (
+                        <Text className="text-error">{favoritesError}</Text>
+                    ) : favorites.length === 0 ? (
+                        <Text className="text-secondary">
+                            No favorites yet — save a gem from its detail page and it'll show up here.
+                        </Text>
+                    ) : (
+                        favorites.map((a) => (
+                            <AttractionCard
+                                key={a.id}
+                                attraction={a}
+                                isOpen={favoriteStatusById[a.id]?.isOpen ?? null}
+                                busynessLevel={favoriteStatusById[a.id]?.busynessLevel ?? null}
+                            />
+                        ))
+                    )}
+                </View>
+
+                <EditProfileModal
+                    visible={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    user={user}
+                    highContrast={highContrast}
+                    onSaved={handleProfileSaved}
+                    onSessionExpired={handleSessionExpired}
+                />
+
+                <ActivityListModal
+                    visible={checkinsModalOpen}
+                    onClose={() => setCheckinsModalOpen(false)}
+                    title="All Check-Ins"
+                    fetchPage={fetchCheckinsPage}
+                    renderRow={(c) => (
+                        <CheckinRow
+                            c={c}
+                            onPress={() => {
+                                if (!c.attraction) return;
+                                setCheckinsModalOpen(false);
+                                navigation.navigate("AttractionDetail", { id: c.attraction.id });
+                            }}
+                        />
+                    )}
+                />
+
+                <ActivityListModal
+                    visible={ratingsModalOpen}
+                    onClose={() => setRatingsModalOpen(false)}
+                    title="All Ratings"
+                    fetchPage={fetchRatingsPage}
+                    renderRow={(r) => (
                         <RatingRow
-                            key={r.id}
                             r={r}
-                            onPress={() => r.attraction && navigation.navigate("AttractionDetail", { id: r.attraction.id })}
+                            onPress={() => {
+                                if (!r.attraction) return;
+                                setRatingsModalOpen(false);
+                                navigation.navigate("AttractionDetail", { id: r.attraction.id });
+                            }}
                         />
-                    ))
-                )}
-            </View>
-
-            {/* Favorites */}
-            <View>
-                <Text className="text-headline-md text-on-surface mb-3">Your Favorites</Text>
-                {favoritesLoading ? (
-                    <ActivityIndicator color="#00685F" />
-                ) : favoritesError ? (
-                    <Text className="text-error">{favoritesError}</Text>
-                ) : favorites.length === 0 ? (
-                    <Text className="text-secondary">
-                        No favorites yet — save a gem from its detail page and it'll show up here.
-                    </Text>
-                ) : (
-                    favorites.map((a) => (
-                        <AttractionCard
-                            key={a.id}
-                            attraction={a}
-                            isOpen={favoriteStatusById[a.id]?.isOpen ?? null}
-                            busynessLevel={favoriteStatusById[a.id]?.busynessLevel ?? null}
-                        />
-                    ))
-                )}
-            </View>
-
-            <EditProfileModal
-                visible={editOpen}
-                onClose={() => setEditOpen(false)}
-                user={user}
-                highContrast={highContrast}
-                onSaved={handleProfileSaved}
-                onSessionExpired={handleSessionExpired}
-            />
-
-            <ActivityListModal
-                visible={checkinsModalOpen}
-                onClose={() => setCheckinsModalOpen(false)}
-                title="All Check-Ins"
-                fetchPage={fetchCheckinsPage}
-                renderRow={(c) => (
-                    <CheckinRow
-                        c={c}
-                        onPress={() => {
-                            if (!c.attraction) return;
-                            setCheckinsModalOpen(false);
-                            navigation.navigate("AttractionDetail", { id: c.attraction.id });
-                        }}
-                    />
-                )}
-            />
-
-            <ActivityListModal
-                visible={ratingsModalOpen}
-                onClose={() => setRatingsModalOpen(false)}
-                title="All Ratings"
-                fetchPage={fetchRatingsPage}
-                renderRow={(r) => (
-                    <RatingRow
-                        r={r}
-                        onPress={() => {
-                            if (!r.attraction) return;
-                            setRatingsModalOpen(false);
-                            navigation.navigate("AttractionDetail", { id: r.attraction.id });
-                        }}
-                    />
-                )}
-            />
-        </ScrollView>
+                    )}
+                />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
