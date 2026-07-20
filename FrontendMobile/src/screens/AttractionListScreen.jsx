@@ -134,7 +134,7 @@ export default function AttractionListScreen() {
           />
         </View>
 
-        {loading && attractions.length === 0 ? (
+        {loading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator color="#00685F" />
             </View>
@@ -150,16 +150,7 @@ export default function AttractionListScreen() {
                 }
                 onEndReachedThreshold={0.4}
                 onEndReached={handleEndReached}
-                ListHeaderComponent={
-                  loading ? (
-                      <View className="py-3">
-                        <ActivityIndicator color="#00685F" />
-                      </View>
-                  ) : null
-                }
-                ListEmptyComponent={
-                  loading ? null : <Text className="text-secondary">No locations match these filters.</Text>
-                }
+                ListEmptyComponent={<Text className="text-secondary">No locations match these filters.</Text>}
                 ListFooterComponent={
                   loadingMore ? (
                       <View className="py-4">
