@@ -33,6 +33,7 @@ ML/catboost_info/
 !ML/output/xgb_model.ubj
 !ML/output/taxi_zones.csv
 !ML/output/weather_2025.csv
+!ML/output/big_file_upload_to_google_drive.example
 
 
 
