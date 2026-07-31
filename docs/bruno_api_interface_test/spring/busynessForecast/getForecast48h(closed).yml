@@ -1,0 +1,15 @@
+info:
+  name: getForecast48h(closed)
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8080/api/busyness/12/48h
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

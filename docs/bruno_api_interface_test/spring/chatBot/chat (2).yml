@@ -1,0 +1,22 @@
+info:
+  name: chat (2)
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:8080/api/weather-chatbot/chat
+  body:
+    type: json
+    data: |-
+      {
+          "message": "What is the weather today?give me some dressing tips",
+          "history": []
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

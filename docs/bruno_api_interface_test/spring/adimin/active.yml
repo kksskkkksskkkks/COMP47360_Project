@@ -1,0 +1,19 @@
+info:
+  name: active
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/users/1/activate?id=1
+  params:
+    - name: id
+      value: "1"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
