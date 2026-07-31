@@ -35,12 +35,11 @@ Data/output/images
 #Data/create_real_accounts.py
 #Data/create_placeholder_users.py
 
-config.py
+#config.py
 
 
 #others
 ModelServing/schema.sql
-others/sprint1.png
 
 
 
