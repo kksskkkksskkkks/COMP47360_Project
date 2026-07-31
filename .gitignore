@@ -30,9 +30,10 @@ ML/catboost_info/
 
 #Data
 Data/describe/
-Data/output/
-Data/create_real_accounts.py
-Data/create_placeholder_users.py
+#Data/output/
+Data/output/images
+#Data/create_real_accounts.py
+#Data/create_placeholder_users.py
 
 config.py
 
