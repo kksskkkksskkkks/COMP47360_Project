@@ -1,0 +1,23 @@
+[
+  "zone_id",
+  "slot_of_day",
+  "dayofweek",
+  "is_weekend",
+  "month",
+  "is_holiday",
+  "hour_sin",
+  "hour_cos",
+  "dow_sin",
+  "dow_cos",
+  "month_sin",
+  "month_cos",
+  "lag_1w",
+  "lag_2w",
+  "lag_3w",
+  "rolling_mean_4w",
+  "temperature_2m",
+  "precipitation",
+  "weathercode",
+  "windspeed_10m",
+  "is_raining"
+]

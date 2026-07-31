@@ -23,9 +23,17 @@ __pycache__/
 ML/tlc_2025/
 ML/raw/
 #ML/output/*.csv
-ML/output/
+ML/output/*
 ML/describe/
 ML/catboost_info/
+
+!ML/output/feature_cols.json
+!ML/output/lgb_model.txt
+!ML/output/cat_model.cbm
+!ML/output/xgb_model.ubj
+!ML/output/taxi_zones.csv
+!ML/output/weather_2025.csv
+
 
 
 #Data
