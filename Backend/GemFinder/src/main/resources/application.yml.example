@@ -1,0 +1,101 @@
+server:
+  port: 8080
+  address: ${SERVER_ADDRESS:127.0.0.1}
+
+spring:
+  application:
+    name: gem-finder-backend
+
+  ai:
+    ollama:
+      base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: gemma2:2b
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: your-email@gmail.com
+#    password: your-app-password
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+
+  # ── MySQL ────────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/gem_finder?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  # ── JPA / Hibernate ──────────────────────────────────────────────
+  jpa:
+    hibernate:
+#      ddl-auto: validate          # validate schema against entities; never auto-create
+      ddl-auto: update          # append
+#      ddl-auto: create          # delete and create
+#      ddl-auto: none          # do nothing
+    show-sql: true                # print SQL in development; set to false in production
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        use_sql_comments: true
+
+        jdbc:
+          batch_size: 500
+          order_inserts: true
+
+
+  # ── Redis ─────────────────────────────────────────────────
+#  data:
+#    redis:
+#      host: ${REDIS_HOST:localhost}
+#      port: ${REDIS_PORT:6379}
+#      password: ${REDIS_PASSWORD:}   # void in local
+#      timeout: 3000ms
+
+
+#  # ── flask ─────────────────────────────────────────────────
+#
+#external:
+#  flask:
+#    base-url: http://localhost:5001
+
+#gemfinder:
+#  flask:
+#    url: http://127.0.0.1:5001
+
+
+# ── MyBatis ──────────────────────────────────────────────────
+#mybatis:
+#  mapper-locations: classpath:mapper/*.xml
+#  type-aliases-package: com.gemfinder.entity
+#  configuration:
+#    map-underscore-to-camel-case: true   # DB: zone_id → Java: zoneId
+##      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # dev print SQL
+
+# ── JWT ───────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:gem-finder-secret-key-change-in-production-min-256-bits}
+  expiration-ms: 86400000    # 24 hours
+
+
+gemfinder:
+  internal:
+    secret: ${INTERNAL_SECRET:dev-secret-change-in-prod}
+
+# ── Weather Chatbot — Manhattan, NYC ──────────────────────────────
+
+#  ollama:
+#    url: http://localhost:11434
+#    model: gemma2:2b
+#    timeout-seconds: 60
+
+
+#cors
+allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:8081,http://127.0.0.1:5173,http://127.0.0.1:8081}
