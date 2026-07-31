@@ -56,18 +56,14 @@ deploy/deployCloud/backend/GemFinder-1.0-SNAPSHOT.jar
 deploy/deployCloud/frontend/dist
 deploy/deployCloud/mysql_data
 deploy/deployCloud/ollama_data
-deploy/deployCloud/nginx/ssl
-deploy/deployCloud/prediction/ML/output
-deploy/deployCloud/prediction/script/output/attractions_final_v2.csv
-deploy/deployCloud/prediction/script
+deploy/deployCloud/nginx/ssl/origin.crt
+deploy/deployCloud/nginx/ssl/origin.key
+
+#deploy/deployCloud/prediction/ML/output
+deploy/deployCloud/prediction/ML/output/combined_dropoffs.csv
+#deploy/deployCloud/prediction/script/output/attractions_final_v2.csv
+#deploy/deployCloud/prediction/script
 
 
-deploy/deployLocal/backend/GemFinder-1.0-SNAPSHOT.jar
-deploy/deployLocal/frontend/dist
-deploy/deployLocal/mysql_data
-deploy/deployLocal/ollama_data
-deploy/deployLocal/nginx/ssl
-deploy/deployLocal/prediction/ML/output
-deploy/deployLocal/prediction/script/output/attractions_final_v2.csv
-deploy/deployLocal/prediction/script
+
 
