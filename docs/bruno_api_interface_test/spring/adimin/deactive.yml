@@ -1,0 +1,19 @@
+info:
+  name: deactive
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/users/1/deactivate?id=1
+  params:
+    - name: id
+      value: "1"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

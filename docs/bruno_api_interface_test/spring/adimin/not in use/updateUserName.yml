@@ -1,0 +1,21 @@
+info:
+  name: updateUserName
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/users/1/username
+  body:
+    type: json
+    data: |-
+      {
+          "username": "111111111111"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

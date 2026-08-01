@@ -1,0 +1,19 @@
+info:
+  name: updateRole
+  type: http
+  seq: 2
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/users/4/role?role=ADMIN
+  params:
+    - name: role
+      value: ADMIN
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

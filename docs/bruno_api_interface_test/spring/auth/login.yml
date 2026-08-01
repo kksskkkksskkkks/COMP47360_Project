@@ -1,0 +1,26 @@
+info:
+  name: login
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8080/api/auth/login
+  body:
+    type: json
+    data: |-
+      {
+        "email": "test6@example.com",
+        "password": "12345678"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setEnvVar("token", res.getBody().data.token);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,21 @@
+info:
+  name: email
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/auth/email
+  body:
+    type: json
+    data: |-
+      {
+        "email":"test3@example.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

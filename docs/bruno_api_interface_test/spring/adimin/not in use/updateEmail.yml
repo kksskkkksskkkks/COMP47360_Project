@@ -1,0 +1,21 @@
+info:
+  name: updateEmail
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: http://localhost:8080/api/users/1/email
+  body:
+    type: json
+    data: |-
+      {
+          "email": "23345@163.com"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
