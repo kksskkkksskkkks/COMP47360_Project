@@ -73,7 +73,7 @@ docker compose exec prediction python script/create_real_accounts.py
 docker compose exec prediction python script/create_placeholder_users.py   # optional
 ```
 
-1. **Re-run `Predict.py` once with `--now`.** The `prediction` container already runs `Predict.py` once automatically on startup, but it typically starts up (per `docker-compose.yml`'s `depends_on`) before you've had a chance to run `populate_poi_data.py`. That first automatic run will trigger gem/recommendation generation against an empty `attractions` table, producing empty results — and the next automatic run isn't until the next day's scheduled hour (03:00 by default). After seeding the attraction data, manually re-run it once so busyness forecasts and recommendations are populated immediately:
+4. **Re-run `Predict.py` once with `--now`.** The `prediction` container already runs `Predict.py` once automatically on startup, but it typically starts up (per `docker-compose.yml`'s `depends_on`) before you've had a chance to run `populate_poi_data.py`. That first automatic run will trigger gem/recommendation generation against an empty `attractions` table, producing empty results — and the next automatic run isn't until the next day's scheduled hour (03:00 by default). After seeding the attraction data, manually re-run it once so busyness forecasts and recommendations are populated immediately:
 
 ```bash
 docker compose exec prediction python script/Predict.py --now
