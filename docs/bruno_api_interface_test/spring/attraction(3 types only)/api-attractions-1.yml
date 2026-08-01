@@ -1,0 +1,19 @@
+info:
+  name: /api/attractions/1
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8080/api/attractions?category=Park,Museum
+  params:
+    - name: category
+      value: Park,Museum
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

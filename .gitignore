@@ -23,23 +23,32 @@ __pycache__/
 ML/tlc_2025/
 ML/raw/
 #ML/output/*.csv
-ML/output/
+ML/output/*
 ML/describe/
 ML/catboost_info/
+
+!ML/output/feature_cols.json
+!ML/output/lgb_model.txt
+!ML/output/cat_model.cbm
+!ML/output/xgb_model.ubj
+!ML/output/taxi_zones.csv
+!ML/output/weather_2025.csv
+!ML/output/big_file_upload_to_google_drive.example
+
 
 
 #Data
 Data/describe/
-Data/output/
-Data/create_real_accounts.py
-Data/create_placeholder_users.py
+#Data/output/
+Data/output/images
+#Data/create_real_accounts.py
+#Data/create_placeholder_users.py
 
-config.py
+#config.py
 
 
 #others
 ModelServing/schema.sql
-others/sprint1.png
 
 
 
@@ -48,18 +57,14 @@ deploy/deployCloud/backend/GemFinder-1.0-SNAPSHOT.jar
 deploy/deployCloud/frontend/dist
 deploy/deployCloud/mysql_data
 deploy/deployCloud/ollama_data
-deploy/deployCloud/nginx/ssl
-deploy/deployCloud/prediction/ML/output
-deploy/deployCloud/prediction/script/output/attractions_final_v2.csv
-deploy/deployCloud/prediction/script
+deploy/deployCloud/nginx/ssl/origin.crt
+deploy/deployCloud/nginx/ssl/origin.key
+
+#deploy/deployCloud/prediction/ML/output
+deploy/deployCloud/prediction/ML/output/combined_dropoffs.csv
+#deploy/deployCloud/prediction/script/output/attractions_final_v2.csv
+#deploy/deployCloud/prediction/script
 
 
-deploy/deployLocal/backend/GemFinder-1.0-SNAPSHOT.jar
-deploy/deployLocal/frontend/dist
-deploy/deployLocal/mysql_data
-deploy/deployLocal/ollama_data
-deploy/deployLocal/nginx/ssl
-deploy/deployLocal/prediction/ML/output
-deploy/deployLocal/prediction/script/output/attractions_final_v2.csv
-deploy/deployLocal/prediction/script
+
 

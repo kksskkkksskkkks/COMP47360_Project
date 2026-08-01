@@ -1,0 +1,7 @@
+info:
+  name: not in use
+  type: folder
+  seq: 6
+
+request:
+  auth: inherit

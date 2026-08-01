@@ -1,0 +1,7 @@
+info:
+  name: profile_map
+  type: folder
+  seq: 8
+
+request:
+  auth: inherit

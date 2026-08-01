@@ -25,6 +25,6 @@ dist-ssr
 
 .vite
 
-.env.production
-.env.development
+#.env.production
+#.env.development
 

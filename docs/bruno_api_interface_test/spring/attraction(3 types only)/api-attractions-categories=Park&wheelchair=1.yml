@@ -1,0 +1,19 @@
+info:
+  name: /api/attractions?categories=Park&wheelchair=1
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8080/api/attractions?wheelchair>=1
+  params:
+    - name: wheelchair>
+      value: "1"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
