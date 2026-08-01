@@ -1,4 +1,4 @@
-# **COMP47360_Project_**Gem Finder
+# COMP47360_Project_Gem Finder
 
 Gem Finder is a full-stack application that helps people finding suitable low crowed time at a high rated attraction in Manhattan. It combines a Spring Boot backend, a React web app, a React Native mobile app, and a machine-learning model forecast attractions "busyness level" by a schedule python script.
 
@@ -103,4 +103,4 @@ bundle exec npx expo run:ios --device --configuration Release
 
 Prerequisites: Xcode installed and signed in with an Apple ID (`Xcode → Settings → Accounts`), with a development certificate generated at least once (`Manage Certificates` → **+** → **Apple Development**); the iPhone connected via USB with Developer Mode enabled (`Settings → Privacy & Security → Developer Mode`). If the first run fails with `No code signing certificates are available to use`, generate the certificate in Xcode, then toggle **Automatically manage signing** off/on again under the target's **Signing & Capabilities** tab in `ios/*.xcworkspace`. On first launch, if iOS shows "Untrusted Developer", go to `Settings → General → VPN & Device Management` and trust the Apple ID used to sign the build.
 
-**Free Apple ID builds expire after 7 days.** Without a paid Apple Developer Program membership ($99/year), apps signed with a personal/free Apple ID stop launching exactly 7×24 hours after install (regardless of usage) and must be reinstalled by re-running the command above. A paid membership removes this limit and also enables cloud builds via `eas build --profile preview --platform ios` that don't require a local Xcode/USB connection at all.
+**Free Apple ID builds expire after 7 days.** Without a paid Apple Developer Program membership ($99/year), apps signed with a personal/free Apple ID stop launching exactly 7×24 hours after install (regardless of usage) and must be reinstalled by re-running the command above. A paid membership removes this limit and also enables cloud builds via `eas build --profile preview --platform ios` that don't require a local Xcode/USB connection.
