@@ -30,7 +30,7 @@ A production-ready Docker Compose stack is provided in `deploy/deployCloud`. Bef
 
 ### Model artifacts
 
-`ModelServing/Predict.py` (run from `deploy/deployCloud/prediction/`) loads `combined_dropoffs.csv` from `deploy/deployCloud/prediction/ML/output/`, which is **not included in this repo** because it's too large. Download it from the Google Drive link noted in `deploy/deployCloud/prediction/ML/output/big_file_upload_to_google_drive.example`, and place it directly in `deploy/deployCloud/prediction/ML/output/` (alongside `lgb_model.txt` and `feature_cols.json`) before building/starting the `prediction` container.
+`combined_dropoffs.csv` from `deploy/deployCloud/prediction/ML/output/`, which is **not included in this repo** because it's too large. Download it from the Google Drive link noted in `deploy/deployCloud/prediction/ML/output/big_file_upload_to_google_drive.example`, and place it directly in `deploy/deployCloud/prediction/ML/output/` (alongside `lgb_model.txt` and `feature_cols.json`) before building/starting the `prediction` container.
 
 ### Build & place artifacts
 
@@ -61,7 +61,7 @@ This starts MySQL, Ollama, the Spring Boot backend, the prediction batch service
 
 ### One-time data & account seeding
 
-The `prediction` container's `Dockerfile` only auto-runs `script/Predict.py` on startup (the daily batch forecasting job). The other scripts in `deploy/deployCloud/prediction/script/` are **one-off setup scripts** that must be run manually, once, after the stack is up. Run them inside the running `prediction` container (its `config.py` is hardcoded to connect to the `db` service):
+The `prediction` container's `Dockerfile` only auto-runs `script/Predict.py` on startup (the daily batch forecasting job). The other scripts in `deploy/deployCloud/prediction/script/` are **one-off setup scripts** that must be run manually, once, after the stack is up. Run them inside the running `prediction` container:
 
 1. **`populate_poi_data.py`** — imports attraction/POI data from `output/attractions_final_v2.csv` into the `attractions` table. Run this first so there's data for recommendations and forecasting to work with.
 2. **`create_real_accounts.py`** — creates real admin/superadmin/user accounts. Edit the `ACCOUNTS` list in the script with real usernames/emails/passwords before running, and clear the plaintext passwords from the file afterward.
